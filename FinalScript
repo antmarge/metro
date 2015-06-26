@@ -1,0 +1,118 @@
+#!usr/bin/perl
+
+#Margaret Antonio 
+#Parser for .diff files to just get differentially expressed genes with significant fold change
+
+#.diff file description: 0-test_id 1-gene_id 2-gene 3-locus 4-sample_1 5-sample_2 6-status 7-value_1 8-value_2 9-log2(fold_change) 10-p_value 11_q-value 12-significant
+
+
+use strict;
+use warnings;
+use Getopt::Long;
+
+sub print_usage(){
+
+	print "\nRequired:\n";
+    print "In the command line (without a flag), input the name of the .diff file to be parsed\n";
+    
+    print "\nOptional:\n"; 
+    print "--fc \t Lowest acceptable fold_change value Default: 2\n";
+    print "--out \t Name of output file\n";
+    print "--known \t choose known or all genes to be outputed";
+}
+
+
+#Assign inputs to variables
+
+our ($fc, $out, $known);
+GetOptions(
+'fc:i' => \$fc,
+'out:s' => \$out,
+'known' => \$known,
+);
+
+
+sub get_time() {
+    my ($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst) = localtime(time);
+    return "$hour:$min:$sec";
+}
+
+print print_usage(),"\n";
+print "\n";
+
+if (!$out){
+	$out="parsedDiff.diff";
+}
+print "Output file is:  $out \n";
+
+if (!$fc){$fc=2;}
+
+print get_time;
+print "\nReady to begin parsing file...\n\n";
+
+#==========================================================================================
+
+my $file = $ARGV[0] or die "Need to get input file on the command line\n";
+open(FH, '<', $file) or die "Could not open '$file' $!\n";
+my $fold_change;
+
+my @genes;
+
+my $i=0;
+
+my $sample1="none";
+my $sample2="none";
+
+my @temp;
+my @header= ("test_id","gene_id","gene","locus","sample_1","sample_2","status","value_1","value_2","log2(fc)","fold_change");
+
+while (my $line = <FH>) {
+  my @fields = split("\t",$line);
+  my $fields=\@fields;
+    if ($fields[6] ne "OK") {next;}
+  splice @fields, 10, 4;
+  if ($fields[7]==0){$fold_change=0;}
+  else{
+  	$fold_change=sprintf("%.3f",$fields[8]/$fields[7]);
+  }
+    if ($fold_change<$fc){next;}
+  $fields[10]=$fold_change;
+    if ($known){
+        if (@fields[2] eq "-"){
+            next;}
+        }
+    
+###Assigning line to a comaprison array
+
+    if (($fields[4] ne $sample1) or ($fields[5] ne $sample2)){ #write @temp array to file and start a new data set
+        my @temp = sort { $b->[10] <=> $a->[10] } @temp;
+        open (FILE,">$sample1_$sample2.txt");
+        print FILE (join("\t", @header)),"\n";
+        print FILE (join("\t", @$_), "\n") for @temp;
+        close FILE;
+        
+        #Empty array ,reset sample names, and increment i for new file
+        @temp=();
+        $sample1=$fields[4];
+        $sample2=$fields[5];
+        $i++;
+    }
+    push (@temp,[@fields]);
+    push (@genes,@fields[2]);
+}
+
+my @temp = sort { $b->[10] <=> $a->[10] } @temp;
+open (FILE,">comp-$sample1-$sample2.txt");
+print FILE (join("\t", @header)),"\n";
+print FILE (join("\t", @$_), "\n") for @temp;
+close FILE;
+
+open (FILE,">sigGenes.txt");
+foreach my $gene(@genes){
+    print FILE $gene, "\n";
+}
+close FILE;
+print get_time;
+
+print "Finished \n\n";
+
