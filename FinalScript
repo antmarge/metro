@@ -64,54 +64,92 @@ my $sample1="none";
 my $sample2="none";
 
 my @temp;
+
 my @header= ("test_id","gene_id","gene","locus","sample_1","sample_2","status","value_1","value_2","log2(fc)","fold_change");
+
+sub uniq {
+    my %seen;
+    grep !$seen{$_}++, @_;
+}
 
 while (my $line = <FH>) {
   my @fields = split("\t",$line);
   my $fields=\@fields;
-    if ($fields[6] ne "OK") {next;}
+  if ($fields[6] ne "OK") {next;}
   splice @fields, 10, 4;
   if ($fields[7]==0){$fold_change=0;}
   else{
   	$fold_change=sprintf("%.3f",$fields[8]/$fields[7]);
   }
-    if ($fold_change<$fc){next;}
+  if ($fold_change<$fc){next;}
   $fields[10]=$fold_change;
-    if ($known){
-        if (@fields[2] eq "-"){
-            next;}
-        }
+  if ($known and $fields[2] eq "-"){
+     next;
+  }
     
 ###Assigning line to a comaprison array
 
-    if (($fields[4] ne $sample1) or ($fields[5] ne $sample2)){ #write @temp array to file and start a new data set
-        my @temp = sort { $b->[10] <=> $a->[10] } @temp;
-        open (FILE,">$sample1_$sample2.txt");
-        print FILE (join("\t", @header)),"\n";
-        print FILE (join("\t", @$_), "\n") for @temp;
-        close FILE;
+    if (($fields[4] ne $sample1) or ($fields[5] ne $sample2)){ 
+        #write @temp array to file and start a new data set
+        if ($sample1 ne "none"){
+
+            my @stemp = sort { $b->[10] <=> $a->[10] } @temp;
+        
+            open (FILE,">$sample1-$sample2.csv");
+            print FILE (join("\t", @header)),"\n";
+            print FILE (join("\t", @$_), "\n") for @stemp;
+            close FILE;
+            
+            my @sgenes= sort { $a cmp $b}@genes;
+	    my @fgenes=uniq(@sgenes);
+            
+            open (FILE,">$sample1-$sample2-genes.sbt");
+            print FILE "$sample1$sample2", "\t";
+            foreach my $gene(@fgenes){
+                 print FILE $gene, "\t";
+            }
+	close FILE;
+        }
+        
+        
         
         #Empty array ,reset sample names, and increment i for new file
+        
+        
         @temp=();
+        @genes=();
         $sample1=$fields[4];
         $sample2=$fields[5];
         $i++;
     }
+    
     push (@temp,[@fields]);
-    push (@genes,@fields[2]);
+    my @values=split(',',$fields[2]);
+       foreach my $val(@values){
+         	push (@genes,$val);
+		}
 }
 
-my @temp = sort { $b->[10] <=> $a->[10] } @temp;
-open (FILE,">comp-$sample1-$sample2.txt");
+
+my @stemp = sort { $b->[10] <=> $a->[10] } @temp;
+
+
+open (FILE,">$sample1-$sample2.txt");
 print FILE (join("\t", @header)),"\n";
-print FILE (join("\t", @$_), "\n") for @temp;
+print FILE (join("\t", @$_), "\n") for @stemp;
 close FILE;
 
-open (FILE,">sigGenes.txt");
-foreach my $gene(@genes){
-    print FILE $gene, "\n";
-}
+my @sgenes= sort {$a cmp $b}@genes;
+my @fgenes=uniq(@sgenes);
+
+open (FILE,">$sample1-$sample2-genes.sbt");
+    print FILE "$sample1$sample2", "\t";
+	foreach my $gene(@fgenes){
+  		print FILE $gene, "\t";
+  	}
 close FILE;
+
+
 print get_time;
 
 print "Finished \n\n";
