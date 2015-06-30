@@ -12,25 +12,26 @@ use Getopt::Long;
 
 sub print_usage(){
 
-	print "\nRequired:\n";
+    print "\nRequired:\n";
     print "In the command line (without a flag), input the name of the .diff file to be parsed\n";
     
     print "\nOptional:\n"; 
     print "--fc \t Lowest acceptable fold_change value Default: 2\n";
     print "--out \t Name of output file\n";
     print "--known \t choose known or all genes to be outputed";
+    print "--ext \t specify output gene file extension (txt, sbt, etc). Default ext= txt for file.txt";
 }
 
 
 #Assign inputs to variables
 
-our ($fc, $out, $known);
+our ($fc, $out, $known, $ext);
 GetOptions(
-'fc:i' => \$fc,
-'out:s' => \$out,
-'known' => \$known,
+	'fc:i' => \$fc,
+	'out:s' => \$out,
+	'known' => \$known,
+	'ext' => \$ext,
 );
-
 
 sub get_time() {
     my ($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst) = localtime(time);
@@ -40,116 +41,125 @@ sub get_time() {
 print print_usage(),"\n";
 print "\n";
 
-if (!$out){
-	$out="parsedDiff.diff";
-}
+
 print "Output file is:  $out \n";
 
 if (!$fc){$fc=2;}
+if (!$ext){$ext=txt;}
 
 print get_time;
 print "\nReady to begin parsing file...\n\n";
 
 #==========================================================================================
-
-my $file = $ARGV[0] or die "Need to get input file on the command line\n";
-open(FH, '<', $file) or die "Could not open '$file' $!\n";
-my $fold_change;
-
-my @genes;
-
-my $i=0;
+my @genes; #array to temporarily hold significant genes from a single comparison until written to txt file
+my @genes_val1; #array like @genes, but for genes that have val1=0 and val2!=0
+my @genes_val2; #array like @genes, but for genes that have val1!=0 and val2=0
 
 my $sample1="none";
 my $sample2="none";
 
-my @temp;
+my $fold_change;
 
-my @header= ("test_id","gene_id","gene","locus","sample_1","sample_2","status","value_1","value_2","log2(fc)","fold_change");
-
-sub uniq {
+sub uniq {		#subroutine to remove gene duplicates in the @genes array
     my %seen;
     grep !$seen{$_}++, @_;
 }
 
-while (my $line = <FH>) {
-  my @fields = split("\t",$line);
-  my $fields=\@fields;
-  if ($fields[6] ne "OK") {next;}
-  splice @fields, 10, 4;
-  if ($fields[7]==0){$fold_change=0;}
-  else{
-  	$fold_change=sprintf("%.3f",$fields[8]/$fields[7]);
-  }
-  if ($fold_change<$fc){next;}
-  $fields[10]=$fold_change;
-  if ($known and $fields[2] eq "-"){
-     next;
-  }
-    
-###Assigning line to a comaprison array
+my $file = $ARGV[0] or die "Need to get input file on the command line\n";
+open(FH, '<', $file) or die "Could not open '$file' $!\n";
 
-    if (($fields[4] ne $sample1) or ($fields[5] ne $sample2)){ 
+my $dummy=<FH>;			#Skips first line in file (header line)
+my @dumb_fields = split("\t",$line);
+my $dumb_fields=\@dumb_fields;
+my $sample1="none";
+my $sample2;
+
+while (my $line = <FH>) {               #Open the input file and go through each line
+	my @fields = split("\t",$line);
+	my $fields=\@fields;
+	###Printing gene lists from single comparisons
+
+    if (($sample1!="none") && (($fields[4] ne $sample1) or ($fields[5] ne $sample2))){ 
         #write @temp array to file and start a new data set
-        if ($sample1 ne "none"){
-
-            my @stemp = sort { $b->[10] <=> $a->[10] } @temp;
-        
-            open (FILE,">$sample1-$sample2.csv");
-            print FILE (join("\t", @header)),"\n";
-            print FILE (join("\t", @$_), "\n") for @stemp;
-            close FILE;
+           
+	my @sgenes= sort {$a cmp $b}@genes; #alphabetically sort each of the three gene lists
+	my @fgenes=uniq(@sgenes); #filter gene lists to only include each gene once
+	open (FILE,">$sample1-$sample2-genes.$ext");
+	#print FILE "$sample1$sample2", "\t";
+	foreach my $gene(@fgenes){
+		print FILE $gene, "\n";
+	}
+        close FILE;
             
-            my @sgenes= sort { $a cmp $b}@genes;
-	    my @fgenes=uniq(@sgenes);
-            
-            open (FILE,">$sample1-$sample2-genes.sbt");
-            print FILE "$sample1$sample2", "\t";
-            foreach my $gene(@fgenes){
-                 print FILE $gene, "\t";
-            }
+	my @sgenes_val1= sort { $a cmp $b}@genes_val1;
+	my @fgenes_val1=uniq(@sgenes_val1);
+	open (FILE,">$sample1-$sample2-genesval1.$ext");
+	#print FILE "$sample1$sample2", "\t";
+	foreach my $genes_val1(@fgenes_val1){
+		print FILE $genes_val1, "\n";
+	}
 	close FILE;
-        }
-        
-        
-        
+	
+	my @sgenes_val2= sort { $a cmp $b}@genes_val2;
+	my @fgenes_val2=uniq(@sgenes_val2);
+	open (FILE,">$sample1-$sample2-genesval2.$ext");
+	#print FILE "$sample1$sample2", "\t";
+	foreach my $genes_val2(@fgenes_val2){
+		print FILE $genes_val2, "\n";
+	}
+	close FILE;
+
+
         #Empty array ,reset sample names, and increment i for new file
-        
-        
-        @temp=();
+
         @genes=();
+        @genes_val1=();
+        @genes_val2=();
         $sample1=$fields[4];
         $sample2=$fields[5];
-        $i++;
+    }
+  	
+  	if (($fields[6] ne "OK") or ($fields[2] eq "-")) {     #Only want known genes whose status is OK. Remove FAILED and NOTEST
+  		next;
+  	} 
+  
+	  #Work on making an option here to decide if unknown gene loci are included
+	  #if ($known && $fields[2] eq "-"){     #If user only wants known genes
+	  #  next;
+	  # }
+	  
+	  #Make option here for choosing to base significance on fold change or p-value; \
+	  #splice @fields, 10, 4; #If there are no biological replicates, then remove the p-val related fields
+  
+  if ($fields[7]==0 && $fields[8]!=0){
+  	my @values=split(',',$fields[2]);
+  	foreach my $val1(@values1){
+        	push (@genes_val1,$val1);
+  	}
+  }
+  elsif ($fields[7]!=0 && $fields[8]==0){
+  	my @values2=split(',',$fields[2]);
+  	foreach my $val2(@values2){
+        	push (@genes_val2,$val2);
+  	}
+  }
+  else{
+  	$fold_change=$fields[8]/$fields[7];
+	if ($fold_change<$fc){
+	  	next;
+	}
+	my @values=split(',',$fields[2]);
+  	foreach my $val(@values){
+        	push (@genes,$val);
+	}
+  }
+            
+ #Empty array ,reset sample names, and increment i for new file
+
+
+
     }
     
-    push (@temp,[@fields]);
-    my @values=split(',',$fields[2]);
-       foreach my $val(@values){
-         	push (@genes,$val);
-		}
-}
-
-
-my @stemp = sort { $b->[10] <=> $a->[10] } @temp;
-
-
-open (FILE,">$sample1-$sample2.txt");
-print FILE (join("\t", @header)),"\n";
-print FILE (join("\t", @$_), "\n") for @stemp;
-close FILE;
-
-my @sgenes= sort {$a cmp $b}@genes;
-my @fgenes=uniq(@sgenes);
-
-open (FILE,">$sample1-$sample2-genes.sbt");
-    print FILE "$sample1$sample2", "\t";
-	foreach my $gene(@fgenes){
-  		print FILE $gene, "\t";
-  	}
-close FILE;
-
-
 print get_time;
 
 print "Finished \n\n";
