@@ -1,0 +1,90 @@
+#!usr/bin/perl
+
+#Margaret Antonio
+#Gets pathways from .tsv file that WebGestalt ouptus. Can put pathway lists into VennY
+
+
+use strict;
+use warnings;
+use Getopt::Long;
+
+our ($db);
+
+GetOptions(
+    'db:s' => \$db,
+);
+
+
+#==========================================================================================
+
+if ($db eq "webgestalt"){
+
+my @pathways=();
+my @pathway_ids=();
+
+
+my $file = $ARGV[0] or die "Need to get input file on the command line\n";
+open(INPUT, '<', $file) or die "Could not open '$file' $!\n";
+
+while (my $line = <INPUT>) {               #Open the input file and go through each line
+    
+    my @fields = split("\t",$line);
+    my $fields=\@fields;
+    if ($fields[0] ne"KEGG pathway"){
+        next;
+    }
+    push (@pathways,$fields[1]);
+    push (@pathway_ids,$fields[2]);
+    
+}
+
+close INPUT;
+
+print "\nCreating pathway name file\n";
+
+open (my $fh1,'>','pathways.txt');
+foreach my $path(@pathways){
+    print $fh1 $path, "\n";
+}
+close $fh1;
+
+print "\nNow creating pathway id file\n";
+
+open (my $fh2,'>','pathway_ids.txt');
+foreach my $id(@pathway_ids){
+    print $fh2 $id, "\n";
+}
+close $fh2;
+
+}
+
+elsif ($db eq "reactome"){
+    my @pathways;
+    
+    my $file = $ARGV[0] or die "Need to get input file on the command line\n";
+    open(INPUT, '<', $file) or die "Could not open '$file' $!\n";
+    
+    while (my $line = <INPUT>) {               #Open the input file and go through each line
+        
+        my @fields = split("\t",$line);
+        my $fields=\@fields;
+        push (@pathways,$fields[1]);
+        
+    }
+    
+    close INPUT;
+    
+    print "\nCreating pathway name file\n";
+    
+    open (my $fh1,'>','reactome_pathways.txt');
+    foreach my $path(@pathways){
+        print $fh1 $path, "\n";
+    }
+    close $fh1;
+    
+}
+
+
+else{
+    print "\nThat is not a supported database. Please enter -db reactome or -db webgestalt.\n" and die;
+}
