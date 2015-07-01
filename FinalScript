@@ -18,18 +18,15 @@ sub print_usage(){
     print "\nOptional:\n"; 
     print "--fc \t Lowest acceptable fold_change value Default: 2\n";
     print "--out \t Name of output file\n";
-    print "--known \t choose known or all genes to be outputed";
     print "--ext \t specify output gene file extension (txt, sbt, etc). Default ext= txt for file.txt";
 }
 
 
 #Assign inputs to variables
 
-our ($fc, $out, $known, $ext);
+our ($fc, $ext);
 GetOptions(
 	'fc:i' => \$fc,
-	'out:s' => \$out,
-	'known' => \$known,
 	'ext' => \$ext,
 );
 
@@ -40,9 +37,6 @@ sub get_time() {
 
 print print_usage(),"\n";
 print "\n";
-
-
-print "Output file is:  $out \n";
 
 if (!$fc){$fc=2;}
 if (!$ext){$ext=txt;}
