@@ -39,7 +39,7 @@ print print_usage(),"\n";
 print "\n";
 
 if (!$fc){$fc=2;}
-if (!$ext){$ext=txt;}
+if (!$ext){$ext="txt";}
 
 print get_time;
 print "\nReady to begin parsing file...\n\n";
