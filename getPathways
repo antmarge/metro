@@ -8,6 +8,18 @@ use strict;
 use warnings;
 use Getopt::Long;
 
+sub print_usage(){
+
+    print "\nperl tonsor.pl <options> <inputfile.tsv>";
+    
+	print "\nRequired:\n";
+    print "In the command line (without a flag), input the name of the .diff file to be parsed\n";
+    print "--db \t Name of the database origin of the input file. Either reactome or webgestalt";
+    
+    print "\nOptional:\n"; 
+    print "--out \t Name of output file. Database name and .txt. extensions will be automatically appended. Default: 'out'\n";
+}
+
 our ($db,$out);
 
 GetOptions(
@@ -15,11 +27,12 @@ GetOptions(
     'out:s' =>\$out,
 );
 
-
 #==========================================================================================
+print print_usage(),"\n";
+print "\n";
+
 if (!$out){
-    print "Enter a name for the output files as --out <out_file>. Database name will be automatically appended.";
-    die
+    $out="out";
 }
 if ($db eq "webgestalt"){
 
