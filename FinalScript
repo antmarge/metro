@@ -49,8 +49,6 @@ my @genes; #array to temporarily hold significant genes from a single comparison
 my @genes_val1; #array like @genes, but for genes that have val1=0 and val2!=0
 my @genes_val2; #array like @genes, but for genes that have val1!=0 and val2=0
 
-my $sample1="none";
-my $sample2="none";
 
 my $fold_change;
 
@@ -63,8 +61,6 @@ my $file = $ARGV[0] or die "Need to get input file on the command line\n";
 open(FH, '<', $file) or die "Could not open '$file' $!\n";
 
 my $dummy=<FH>;			#Skips first line in file (header line)
-my @dumb_fields = split("\t",$line);
-my $dumb_fields=\@dumb_fields;
 my $sample1="none";
 my $sample2;
 
@@ -73,7 +69,7 @@ while (my $line = <FH>) {               #Open the input file and go through each
 	my $fields=\@fields;
 	###Printing gene lists from single comparisons
 
-    if (($sample1!="none") && (($fields[4] ne $sample1) or ($fields[5] ne $sample2))){ 
+    if (($sample1 ne "none") && (($fields[4] ne $sample1) or ($fields[5] ne $sample2))){ 
         #write @temp array to file and start a new data set
            
 	my @sgenes= sort {$a cmp $b}@genes; #alphabetically sort each of the three gene lists
@@ -126,7 +122,7 @@ while (my $line = <FH>) {               #Open the input file and go through each
 	  #splice @fields, 10, 4; #If there are no biological replicates, then remove the p-val related fields
   
   if ($fields[7]==0 && $fields[8]!=0){
-  	my @values=split(',',$fields[2]);
+  	my @values1=split(',',$fields[2]);
   	foreach my $val1(@values1){
         	push (@genes_val1,$val1);
   	}
