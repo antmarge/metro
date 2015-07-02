@@ -8,55 +8,59 @@ use strict;
 use warnings;
 use Getopt::Long;
 
-our ($db);
+our ($db,$out);
 
 GetOptions(
     'db:s' => \$db,
+    'out:s' =>\$out,
 );
 
 
 #==========================================================================================
-
+if (!$out){
+    print "Enter a name for the output files as --out <out_file>. Database name will be automatically appended.";
+    die
+}
 if ($db eq "webgestalt"){
 
-my @pathways=();
-my @pathway_ids=();
-
-
-my $file = $ARGV[0] or die "Need to get input file on the command line\n";
-open(INPUT, '<', $file) or die "Could not open '$file' $!\n";
-
-while (my $line = <INPUT>) {               #Open the input file and go through each line
+    my @pathways=();
+    my @pathway_ids=();
     
-    my @fields = split("\t",$line);
-    my $fields=\@fields;
-    if ($fields[0] ne"KEGG pathway"){
-        next;
+    
+    my $file = $ARGV[0] or die "Need to get input file on the command line\n";
+    open(INPUT, '<', $file) or die "Could not open '$file' $!\n";
+    
+    while (my $line = <INPUT>) {               #Open the input file and go through each line
+        
+        my @fields = split("\t",$line);
+        my $fields=\@fields;
+        if ($fields[0] ne"KEGG pathway"){
+            next;
+        }
+        push (@pathways,$fields[1]);
+        push (@pathway_ids,$fields[2]);
+        
     }
-    push (@pathways,$fields[1]);
-    push (@pathway_ids,$fields[2]);
     
-}
-
-close INPUT;
-
-print "\nCreating pathway name file\n";
-
-open (my $fh1,'>','pathways.txt');
-foreach my $path(@pathways){
-    print $fh1 $path, "\n";
-}
-close $fh1;
-
-print "\nNow creating pathway id file\n";
-
-open (my $fh2,'>','pathway_ids.txt');
-foreach my $id(@pathway_ids){
-    print $fh2 $id, "\n";
-}
-close $fh2;
-
-}
+    close INPUT;
+    
+    print "\nCreating pathway name file\n";
+    
+    open (FH1,">$out-wb_pathways.txt");
+    foreach my $path(@pathways){
+        print FH1 $path, "\n";
+    }
+    close FH1;
+    
+    print "\nNow creating pathway id file\n";
+    
+    open (FH2,">$out_wb_pathway_ids.txt");
+    foreach my $id(@pathway_ids){
+        print FH2 $id, "\n";
+    }
+    close FH2;
+    
+    }
 
 elsif ($db eq "reactome"){
     my @pathways;
@@ -76,11 +80,11 @@ elsif ($db eq "reactome"){
     
     print "\nCreating pathway name file\n";
     
-    open (my $fh1,'>','reactome_pathways.txt');
+    open (FH1,">$out-reactome_pathways.txt");
     foreach my $path(@pathways){
-        print $fh1 $path, "\n";
+        print FH1 $path, "\n";
     }
-    close $fh1;
+    close FH1;
     
 }
 
