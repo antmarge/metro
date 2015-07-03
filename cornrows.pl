@@ -10,7 +10,7 @@ use Getopt::Long;
 
 sub print_usage(){
 
-    print "\nperl tonsor.pl <options> <inputfile.tsv>";
+    print "\nperl cornrows.pl <options> <inputfile.tsv> --db <database> --out <nameOutFile>";
     
 	print "\nRequired:\n";
     print "In the command line (without a flag), input the name of the .diff file to be parsed\n";
@@ -37,7 +37,7 @@ if (!$out){
 if ($db eq "webgestalt"){
 
     my @pathways=();
-    my @pathway_ids=();
+    #my @pathway_ids=();
     
     
     my $file = $ARGV[0] or die "Need to get input file on the command line\n";
@@ -51,27 +51,27 @@ if ($db eq "webgestalt"){
             next;
         }
         push (@pathways,$fields[1]);
-        push (@pathway_ids,$fields[2]);
+        #push (@pathway_ids,$fields[2]);
         
     }
     
     close INPUT;
     
     print "\nCreating pathway name file\n";
-    
-    open (FH1,">$out-wb_pathways.txt");
+    my $file=$out."_wb_pathways.txt";
+    open (FH1,'>',$file);
     foreach my $path(@pathways){
         print FH1 $path, "\n";
     }
     close FH1;
     
-    print "\nNow creating pathway id file\n";
-    
-    open (FH2,">$out_wb_pathway_ids.txt");
-    foreach my $id(@pathway_ids){
-        print FH2 $id, "\n";
-    }
-    close FH2;
+    #print "\nNow creating pathway id file\n";
+   # my $file=$out."_wb_pathways.txt";
+    #open (FH1,'>',$file);
+    #foreach my $id(@pathway_ids){
+     #   print FH2 $id, "\n";
+    #}
+    #close FH2;
     
     }
 
@@ -92,8 +92,8 @@ elsif ($db eq "reactome"){
     close INPUT;
     
     print "\nCreating pathway name file\n";
-    
-    open (FH1,">$out-reactome_pathways.txt");
+    my $file1=$out."_reactome_pathways.txt";
+    open (FH1,'>',$file1);
     foreach my $path(@pathways){
         print FH1 $path, "\n";
     }
