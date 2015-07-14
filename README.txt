@@ -1,2 +1,2 @@
-git add <fileName or whole directory>
+hiiiiiiiiiiit add <fileName or whole directory>
 git commit -m “Message”
