@@ -15,8 +15,8 @@ use Getopt::Long;
 
 our (@L1, @L2);
 GetOptions(
-'fc:i' => \$fc,
-'ext' => \$ext,
+'L1=s' => \@L1,
+'L2=s' => \@L2,
 );
 
 
@@ -32,6 +32,9 @@ while (<MAIN>){
     $string.=$_;
 }
 my @common=split("\n",$string);
+foreach my $c(@common){
+    print $c,"\t";
+}
 my @first;
 my @second;
 my $i=0;
@@ -44,7 +47,7 @@ open (FIRST,'<',$file1);
 #keep index of array of common genes
 while (my $line=<FIRST>){
     my @fields=split("\t",$line);
-    if (($fields[4]==$L1[0] and $fields[5]==$L1[1])and ($fields[2]==$common[$i])){
+    if (($fields[4] eq $L1[0] and $fields[5] eq $L1[1])and ($fields[2]==$common[$i])){
         push (@first,$fields[9]);
         my $i++;
     }
@@ -55,15 +58,17 @@ open (SEC,'<',$file1);
 $i=0;
 while (my $line=<SEC>){
     my @fields=split ("\t",$line);
-    if (($fields[4]==$L2[0] and $fields[5]==$L2[1]) and ($fields[2]==$common[$i])){
+    if (($fields[4] eq $L2[0] and $fields[5] eq $L2[1]) and ($fields[2]==$common[$i])){
         push (@second,$fields[9]);
         my $i++;
     }
 }
 close SEC;
+my $first=\@first;
+my $second=\@second;
+open (CSV,'>',"combinedFC.csv");
 
-open (CSV,'>',$combinedFC.csv);
-for (my $n=0;$n<scalar @first){
+for (my $n=0;$n< scalar @common;$n++){
     print CSV $first[$n],",",$second[$n],"\n";
 }
 
