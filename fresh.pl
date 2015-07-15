@@ -67,61 +67,88 @@ if ($h){
 }
 
 my $index=0;
-my %hash;
+my %some;
+my %whole;
 
-my @whole; #have to read the whole gene.fpkm_tracking file into an array because need to sort it alphabetically
+#my @whole; #have to read the whole gene.fpkm_tracking file into an array because need to sort it alphabetically
 
 open OUT,'>',"out.txt";
 
 while (my $line=<TR>){
 	#print "Got to while loop";
+    #print $line;
 	my @fields=split("\t",$line);
+    #print $fields[4],"\n";
     my @gene=split(",",$fields[4]);
+    my $name=$gene[0];
+    if ($name eq "-"){next;}
+    #print "$name\n";
     my @imp=($fields[0],$fields[9],$fields[13],$fields[17],$fields[21],$fields[25],$fields[29],$fields[33]);
-    $hash{$gene[0]}=@imp;
+    print $name,":\t";
+    foreach my $m(@imp){print $m,",";}
+    print "\n";
+    if ($name ne "gene_short_name"){
+    $whole{$name}=[@imp];
+    }
 	#print "Looking for: $common[$i]\n";
+}
+close TR;
+
+foreach (sort keys %whole) {
+    print "$_ : ";
+    my @va=@{$whole{$_}};
+    foreach my $a (@va){
+        print $a,"\t";
+    }
+    print "\n";
 }
 
 #Sort both lists
-my @swhole=sort { $a->[4] cmp $b->[4]} @whole;
+#my @swhole=sort { $a->[4] cmp $b->[4]} @whole;
 my @scommon=sort {$a cmp $b} @common;
 my $i=0;
-foreach my $t(@swhole){
-	my @t=@$t;
-	if ($t[4] eq "$common[$i]"){
-         print "\nin if loop\n";
-	#print "They're equal\n";
-        print
-        print $t[$L2[0]],"\t",$t[$L2[1]],"\n";
-        if ($t[$L1[0]]!=0 and $t[$L1[1]]!=0 and $t[$L1[0]]!=0 and $t[$L1[1]]!=0){
-            my $fc1=log2($t[$L1[0]]/$t[$L1[1]]);
-            my $fc2=log2($t[$L2[0]]/$t[$L2[1]]);
-            my @vals=($fc1,$fc2);
-            $hash{$t[4]}=@vals;
-            $i++;
-            #print "pushed";
+my $l=0;
+
+print "\nThis is a test\n";
+my @test=@{$whole{"AARD"}};
+foreach my $t(@test){
+  print $t,"\t";
 }
+print "\n";
+print "\nThis is how big the whole array is: ",scalar %whole,"\n";
+print OUT "Genes to check (had value of 0 and log2(fc) could not be calculated):\n";
+foreach my $g(@common){
+    print $g,"\t";
+    my $help=$whole{$g};
+    if (!$help){next;}
+    print $help,"\n";
+    my @values=@$help;
+    if ($values[4]==0 or $values[5]==0){
+        print OUT $g,"\n";
+        next;
     }
+    my $fc1=log2($values[7]/$values[4]);
+    my $fc2=log2($values[7]/$values[5]);
+    my @vals=($fc1,$fc2);
+    @{$some{$g}}=@vals;
+    #print "pushed";
 }
+
 my $b=0;
 
-print "This is the size of the whole array: ",scalar @swhole,"\n";
-foreach my $w(@swhole){
-    my @w=@$w;
-    print OUT $b,": $w[1]\t";
-    $b++;
-}
+print "This is the size of the whole array: ".keys(%whole)."\n";
 
 close OUT;
 
 open CSV,'>',"out.csv";
-for (my($key,$value)=each %hash){
-	print CSV $key;
-	my @value=@$value;
-	foreach my $v(@value){
-		print CSV ",",$v;
-	}
-	print CSV "\n";
+print CSV "gene,sh_controlvsh_5322,sh_controlvsh_5324\n";
+foreach (sort keys %some) {
+    print CSV "$_ , ";
+    my @va=@{$some{$_}};
+        print CSV $va[0],",",$va[1];
+    
+    print CSV "\n";
 }
+
 
 close CSV;
