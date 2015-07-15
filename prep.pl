@@ -49,7 +49,7 @@ my @first;
 my @second;
 my $i=0;
 my %firsthash;
-my %secondhash;
+my %sechash;
 
 #now have array of all common genes between two samples to be compared
 #GOAL: find these genes in the gene_exp.diff file for the epecified comparisons and make two columns with fold change of each gene (in same order as array)
@@ -60,48 +60,49 @@ $i=0;
 #my %hash;
 #keep index of array of common genes
 while (my $line = <FIRST>){
-    print "Looking for: $common[$i]\n";
+    #print "Looking for: $common[$i]\n";
     my @fields=split("\t",$line);
-    my $fields=\@fields;
+    #my $fields=\@fields;
     #print LOG "$fields[0]: $fields[4]----$L2[0] and $fields[5]-----$L2[1] and $fields[2] -----$common[$i]\n";
-    if ((($fields[4] eq $L1[0]) and ($fields[5] eq $L1[1])){ #and ($fields[2] eq $common[$i])){
+    if (($fields[4] eq $L1[0]) and ($fields[5] eq $L1[1])){ #and ($fields[2] eq $common[$i])){
         my @vals=split(",",$fields[2]);
         my $vals=\@vals;
         $firsthash{$vals[0]}=$fields[9];
-        #$i++;
-        #print "index $i \n";
-        #next;
     }
-}
-while (my ($key,$value)=each %firsthash){
-    print $key, "\t", $value,"\n";
 }
 close FIRST;
 
+
+
+#open file again to make second hash
 open (SEC,'<',$file1);
 $i=0;
 
 while (my $line=<SEC>){
    my @fields=split ("\t",$line);
-   print LOG "$fields[0]: $fields[4]----$L2[0] and $fields[5]-----$L2[1] and $fields[2] -----$common[$i]\n";
-   if (($fields[4] eq $L2[0]) and ($fields[5] eq $L2[1]) and ($fields[2] eq $common[$i])){
-       push (@second,$fields[9]);
-       print "Just pushed!\n";
-       $i++;
-       next;
+    #print LOG "$fields[0]: $fields[4]----$L2[0] and $fields[5]-----$L2[1] and $fields[2] -----$common[$i]\n";
+    if (($fields[4] eq $L2[0]) and ($fields[5] eq $L2[1])){ #and ($fields[2] eq $common[$i])){
+        my @vals=split(",",$fields[2]);
+        my $vals=\@vals;
+        $sechash{$vals[0]}=$fields[9];
    }
 }
 close SEC;
-close LOG;
 
-my $first=\@first;
-my $second=\@second;
 open (CSV,'>',"combinedFC.csv");
-my $num= scalar @common;
-print "\nThis is the size of second $num\n";
-my $n;
-for ($n=0;$n<scalar @first;$n++){
-   print CSV $first[$n],",",$second[$n],"\n";
+my @complete;
+for (my $x=0;$x<scalar @common;$x++){
+    my $val1=$firsthash{$common[$x]};
+    my $val2=$sechash{$common[$x]};
+    if (!$val1){$val1="ALERT";}
+    if (!$val2){$val2="ALERT2";}
+    
+    print CSV $common[$x],",",$val1,",",$val2,"\n";
 }
-
 close CSV;
+#Check integrity of first hash
+#while (my ($key,$value)=each %sechash){
+#    print $key, "\t", $value,"\n";
+#}
+
+close LOG;
