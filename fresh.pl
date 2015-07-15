@@ -67,16 +67,18 @@ if ($h){
 }
 
 my $index=0;
-tie my %hash,"Tie::IxHash";
+my %hash;
 
-my @whole; #have to read the whol gene.fpkm_tracking file into an array because need to sort it alphabetically
+my @whole; #have to read the whole gene.fpkm_tracking file into an array because need to sort it alphabetically
 
 open OUT,'>',"out.txt";
 
 while (my $line=<TR>){
 	#print "Got to while loop";
 	my @fields=split("\t",$line);
-	push (@whole,\@fields);
+    my @gene=split(",",$fields[4]);
+    my @imp=($fields[0],$fields[9],$fields[13],$fields[17],$fields[21],$fields[25],$fields[29],$fields[33]);
+    $hash{$gene[0]}=@imp;
 	#print "Looking for: $common[$i]\n";
 }
 
@@ -87,15 +89,31 @@ my $i=0;
 foreach my $t(@swhole){
 	my @t=@$t;
 	if ($t[4] eq "$common[$i]"){
+         print "\nin if loop\n";
 	#print "They're equal\n";
-	my $fc1=log2($t[$L1[0]]/$t[$L1[1]]);
-	my $fc2=log2($t[$L2[0]]/$t[$L2[1]]);
-	my @vals=($fc1,$fc2);
-	$hash{$t[4]}=@vals;
-	$i++;
-	#print "pushed";
+        print
+        print $t[$L2[0]],"\t",$t[$L2[1]],"\n";
+        if ($t[$L1[0]]!=0 and $t[$L1[1]]!=0 and $t[$L1[0]]!=0 and $t[$L1[1]]!=0){
+            my $fc1=log2($t[$L1[0]]/$t[$L1[1]]);
+            my $fc2=log2($t[$L2[0]]/$t[$L2[1]]);
+            my @vals=($fc1,$fc2);
+            $hash{$t[4]}=@vals;
+            $i++;
+            #print "pushed";
 }
+    }
 }
+my $b=0;
+
+print "This is the size of the whole array: ",scalar @swhole,"\n";
+foreach my $w(@swhole){
+    my @w=@$w;
+    print OUT $b,": $w[1]\t";
+    $b++;
+}
+
+close OUT;
+
 open CSV,'>',"out.csv";
 for (my($key,$value)=each %hash){
 	print CSV $key;
