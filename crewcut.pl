@@ -47,9 +47,9 @@ print get_time;
 print "\nReady to begin parsing file...\n\n";
 
 #==========================================================================================
-my @genes; #array to temporarily hold significant genes from a single comparison until written to txt file
-my @genes_val1; #array like @genes, but for genes that have val1=0 and val2!=0
-my @genes_val2; #array like @genes, but for genes that have val1!=0 and val2=0
+#my @genes; #array to temporarily hold significant genes from a single comparison until written to txt file
+#my @genes_val1; #array like @genes, but for genes that have val1=0 and val2!=0
+#my @genes_val2; #array like @genes, but for genes that have val1!=0 and val2=0
 my $num=0;
 
 my $fold_change;
@@ -65,6 +65,9 @@ open(FH, '<', $file) or die "Could not open '$file' $!\n";
 my $dummy=<FH>;			#Skips first line in file (header line)
 my $sample1="none";
 my $sample2="none";
+my %gene_ids;
+my %gene_ids2;
+my %gene_ids3;
 
 my $log="run.log";
 open(LOG,'>',$log);
@@ -74,6 +77,9 @@ print LOG "Gene significance is based on fold change (value2/value1)\n\nGene fil
 while (my $line = <FH>) {               #Open the input file and go through each line
     my @fields = split("\t",$line);
     my $fields=\@fields;
+    my @values=split(',',$fields[2]);
+    my $name=$values[0];
+    my $id=$fields[0];
     ###Printing gene lists from single comparisons
     
     if (($sample1 ne "none") && (($fields[4] ne $sample1) or ($fields[5] ne $sample2))){
@@ -81,45 +87,44 @@ while (my $line = <FH>) {               #Open the input file and go through each
         print LOG "Comparison $num: $sample1 v $sample2\n";
         #write @temp array to file and start a new data set
         
-        my @sgenes= sort {$a cmp $b}@genes; #alphabetically sort each of the three gene lists
+        #my @sgenes= sort {$a cmp $b}@genes; #alphabetically sort each of the three gene lists
         #my @fgenes=uniq(@sgenes); #filter gene lists to only include each gene once
         my $file1=$num."A".$ext;
-        print LOG "\tA:",scalar @sgenes,"\n";
+        print LOG "\tA:",scalar %gene_ids,"\n";
         open (FH1,'>',$file1);
-        foreach my $gene(@sgenes){
-            print FH1 $gene, "\n";
+        foreach (sort keys %gene_ids) {
+            print FH1 "$_ \t $gene_ids{$_} \n";
         }
         close FH1;
         
-        my @sgenes_val1= sort { $a cmp $b}@genes_val1;
+        #my @sgenes_val1= sort { $a cmp $b}@genes_val1;
         #my @fgenes_val1=uniq(@sgenes_val1);
-        print LOG "\tB:",scalar @sgenes_val1,"\n";
+        print LOG "\tB:",scalar keys %gene_ids2,"\n";
         my $file2=$num."B".$ext;
         open (FH2,'>',$file2);
-        
-        foreach my $genes(@sgenes_val1){
-            print FH2 $genes, "\n";
+        foreach (sort keys %gene_ids2) {
+            print FH2 "$_\t$gene_ids2{$_}\n";
         }
         close FH2;
         
-        my @sgenes_val2= sort { $a cmp $b}@genes_val2;
+        #my @sgenes_val2= sort {$a cmp $b}@genes_val2;
         #my @fgenes_val2=uniq(@sgenes_val2);
-        print LOG "\tC:",scalar @sgenes_val2,"\n";
+        print LOG "\tC:",scalar keys %gene_ids3,"\n";
         my $file3=$num."C".$ext;
         open (FH3,'>',$file3);
-        foreach my $genes(@sgenes_val2){
-            print FH3 $genes, "\n";
+        foreach (sort keys %gene_ids3) {
+            print FH3 "$_ \t$gene_ids3{$_}\n";
         }
         close FH3;
-        
+
         
         #Empty array ,reset sample names, and increment i for new file
         
-        @genes=();
-        @genes_val1=();
-        @genes_val2=();
+        %gene_ids=();
+        %gene_ids2=();
+        %gene_ids3=();
 
-    }
+    } #end of printing if loop
     
     if (($fields[6] ne "OK") or ($fields[2] eq "-")) {     #Only want known genes whose status is OK. Remove FAILED and NOTEST
         $sample1=$fields[4];
@@ -134,73 +139,77 @@ while (my $line = <FH>) {               #Open the input file and go through each
     
     #Make option here for choosing to base significance on fold change or p-value; \
     #splice @fields, 10, 4; #If there are no biological replicates, then remove the p-val related fields
-    my $geneid=$fields[0];
-    
-    if ($fields[7]==0 && $fields[8]!=0){
-        push (@genes_val1,$geneid);
-        
-    }
-    elsif ($fields[7]!=0 && $fields[8]==0){
-        my @values2=split(',',$fields[2]);
-        push (@genes_val2,$geneid);
-        
+
+
+    if ($fields[7]==0 or $fields[8]==0){
+        if ($fields[7]==0){
+            if ($fields[8]>2){
+                $gene_ids2{$id}=$name;
+            }
+            else{
+                next;
+            }
+        }
+        else{
+            if ($fields[7]>2){
+                $gene_ids3{$id}=$name;
+            }
+            else{
+                next;
+            }
+        }
     }
     else{
         $fold_change=$fields[8]/$fields[7];
         if ($fold_change<$fc){
             next;
         }
-        push (@genes,$geneid);
+        $gene_ids{$id}=$name;
     }
     $sample1=$fields[4];
     $sample2=$fields[5];
     
-}
-
+} #end of while loop going through file
 
 ####To do last comparison
 
-$num++;
-print LOG "Comparison $num: $sample1 v $sample2\n";
-#write @temp array to file and start a new data set
+    $num++;
+    print LOG "Comparison $num: $sample1 v $sample2\n";
+    #write @temp array to file and start a new data set
+    
+    #my @sgenes= sort {$a cmp $b}@genes; #alphabetically sort each of the three gene lists
+    #my @fgenes=uniq(@sgenes); #filter gene lists to only include each gene once
+    my $file1=$num."A".$ext;
+    print LOG "\tA:",scalar %gene_ids,"\n";
+    open (FH1,'>',$file1);
+    foreach (sort keys %gene_ids) {
+        print FH1 "$_ \t ";
+        print FH1 $gene_ids{$_},"\n";
+    }
+    close FH1;
 
-my @sgenes= sort {$a cmp $b}@genes; #alphabetically sort each of the three gene lists
-#my @fgenes=uniq(@sgenes); #filter gene lists to only include each gene once----shouldn't have to do this---as of 150716 now using gene ids
-my $file1=$num."A".$ext;
-print LOG "\tA:",scalar @sgenes,"\n";
-open (FH1,'>',$file1);
-foreach my $gene(@sgenes){
-    print FH1 $gene, "\n";
-}
-close FH1;
+    #my @sgenes_val1= sort { $a cmp $b}@genes_val1;
+    #my @fgenes_val1=uniq(@sgenes_val1);
+    print LOG "\tB:",scalar keys %gene_ids2,"\n";
+    my $file2=$num."B".$ext;
+    open (FH2,'>',$file2);
+    foreach (sort keys %gene_ids2) {
+        print FH2 "$_ \t ";
+        print FH2 $gene_ids2{$_},"\n";
+    }
+    close FH2;
+    
+    #my @sgenes_val2= sort { $a cmp $b}@genes_val2;
+    #my @fgenes_val2=uniq(@sgenes_val2);
+    print LOG "\tC:",scalar keys %gene_ids3,"\n";
+    my $file3=$num."C".$ext;
+    open (FH3,'>',$file3);
+    foreach (sort keys %gene_ids3) {
+        print FH3 "$_ \t ";
+        print FH3 $gene_ids3{$_},"\n";
+    }
+    close FH3;
 
-my @sgenes_val1= sort { $a cmp $b}@genes_val1;
-#my @fgenes_val1=uniq(@sgenes_val1);
-print LOG "\tB:",scalar @sgenes_val1,"\n";
-my $file2=$num."B".$ext;
-open (FH2,'>',$file2);
-
-foreach my $genes(@sgenes_val1){
-    print FH2 $genes, "\n";
-}
-close FH2;
-
-my @sgenes_val2= sort { $a cmp $b}@genes_val2;
-#my @fgenes_val2=uniq(@sgenes_val2);
-print LOG "\tC:",scalar @sgenes_val2,"\n";
-my $file3=$num."C".$ext;
-open (FH3,'>',$file3);
-foreach my $genes(@sgenes_val2){
-    print FH3 $genes, "\n";
-}
-close FH3;
-
-
-#Empty array ,reset sample names, and increment i for new file
-
-@genes=();
-@genes_val1=();
-@genes_val2=();
 
 print LOG "\nEnd: ",get_time,"\n";
 
