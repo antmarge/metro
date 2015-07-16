@@ -14,7 +14,6 @@
 use strict;
 use warnings;
 use Getopt::Long;
-use Tie::IxHash;
 
 our ($one, $list,$two,$h);
 GetOptions(
@@ -79,8 +78,7 @@ while (my $line=<TR>){
     #print $line;
 	my @fields=split("\t",$line);
     #print $fields[4],"\n";
-    my @gene=split(",",$fields[4]);
-    my $name=$gene[0];
+    my $name=$fields[0];
     if ($name eq "-"){next;}
     #print "$name\n";
     my @imp=($fields[0],$fields[9],$fields[13],$fields[17],$fields[21],$fields[25],$fields[29],$fields[33]);
@@ -109,11 +107,6 @@ my @scommon=sort {$a cmp $b} @common;
 my $i=0;
 my $l=0;
 
-print "\nThis is a test\n";
-my @test=@{$whole{"AARD"}};
-foreach my $t(@test){
-  print $t,"\t";
-}
 print "\n";
 print "\nThis is how big the whole array is: ",scalar %whole,"\n";
 print OUT "Genes to check (had value of 0 and log2(fc) could not be calculated):\n";
@@ -123,10 +116,10 @@ foreach my $g(@common){
     if (!$help){next;}
     print $help,"\n";
     my @values=@$help;
-    if ($values[4]==0 or $values[5]==0){
-        print OUT $g,"\n";
-        next;
-    }
+    #if ($values[4]==0 or $values[5]==0){
+    #    print OUT $g,"\n";
+    #    next;
+    #}
     my $fc1=log2($values[7]/$values[4]);
     my $fc2=log2($values[7]/$values[5]);
     my @vals=($fc1,$fc2);
