@@ -82,32 +82,32 @@ while (my $line = <FH>) {               #Open the input file and go through each
         #write @temp array to file and start a new data set
         
         my @sgenes= sort {$a cmp $b}@genes; #alphabetically sort each of the three gene lists
-        my @fgenes=uniq(@sgenes); #filter gene lists to only include each gene once
+        #my @fgenes=uniq(@sgenes); #filter gene lists to only include each gene once
         my $file1=$num."A".$ext;
-        print LOG "\tA:",scalar @fgenes,"\n";
+        print LOG "\tA:",scalar @sgenes,"\n";
         open (FH1,'>',$file1);
-        foreach my $gene(@fgenes){
+        foreach my $gene(@sgenes){
             print FH1 $gene, "\n";
         }
         close FH1;
         
         my @sgenes_val1= sort { $a cmp $b}@genes_val1;
-        my @fgenes_val1=uniq(@sgenes_val1);
-        print LOG "\tB:",scalar @fgenes_val1,"\n";
+        #my @fgenes_val1=uniq(@sgenes_val1);
+        print LOG "\tB:",scalar @sgenes_val1,"\n";
         my $file2=$num."B".$ext;
         open (FH2,'>',$file2);
         
-        foreach my $genes(@fgenes_val1){
+        foreach my $genes(@sgenes_val1){
             print FH2 $genes, "\n";
         }
         close FH2;
         
         my @sgenes_val2= sort { $a cmp $b}@genes_val2;
-        my @fgenes_val2=uniq(@sgenes_val2);
-        print LOG "\tC:",scalar @fgenes_val2,"\n";
+        #my @fgenes_val2=uniq(@sgenes_val2);
+        print LOG "\tC:",scalar @sgenes_val2,"\n";
         my $file3=$num."C".$ext;
         open (FH3,'>',$file3);
-        foreach my $genes(@fgenes_val2){
+        foreach my $genes(@sgenes_val2){
             print FH3 $genes, "\n";
         }
         close FH3;
@@ -134,28 +134,23 @@ while (my $line = <FH>) {               #Open the input file and go through each
     
     #Make option here for choosing to base significance on fold change or p-value; \
     #splice @fields, 10, 4; #If there are no biological replicates, then remove the p-val related fields
+    my $geneid=$fields[0];
     
     if ($fields[7]==0 && $fields[8]!=0){
-        my @values1=split(',',$fields[2]);
-        foreach my $val1(@values1){
-            push (@genes_val1,$val1);
-        }
+        push (@genes_val1,$geneid);
+        
     }
     elsif ($fields[7]!=0 && $fields[8]==0){
         my @values2=split(',',$fields[2]);
-        foreach my $val2(@values2){
-            push (@genes_val2,$val2);
-        }
+        push (@genes_val2,$geneid);
+        
     }
     else{
         $fold_change=$fields[8]/$fields[7];
         if ($fold_change<$fc){
             next;
         }
-        my @values=split(',',$fields[2]);
-        foreach my $val(@values){
-            push (@genes,$val);
-        }
+        push (@genes,$geneid);
     }
     $sample1=$fields[4];
     $sample2=$fields[5];
@@ -170,32 +165,32 @@ print LOG "Comparison $num: $sample1 v $sample2\n";
 #write @temp array to file and start a new data set
 
 my @sgenes= sort {$a cmp $b}@genes; #alphabetically sort each of the three gene lists
-my @fgenes=uniq(@sgenes); #filter gene lists to only include each gene once
+#my @fgenes=uniq(@sgenes); #filter gene lists to only include each gene once----shouldn't have to do this---as of 150716 now using gene ids
 my $file1=$num."A".$ext;
-print LOG "\tA:",scalar @fgenes,"\n";
+print LOG "\tA:",scalar @sgenes,"\n";
 open (FH1,'>',$file1);
-foreach my $gene(@fgenes){
+foreach my $gene(@sgenes){
     print FH1 $gene, "\n";
 }
 close FH1;
 
 my @sgenes_val1= sort { $a cmp $b}@genes_val1;
-my @fgenes_val1=uniq(@sgenes_val1);
-print LOG "\tB:",scalar @fgenes_val1,"\n";
+#my @fgenes_val1=uniq(@sgenes_val1);
+print LOG "\tB:",scalar @sgenes_val1,"\n";
 my $file2=$num."B".$ext;
 open (FH2,'>',$file2);
 
-foreach my $genes(@fgenes_val1){
+foreach my $genes(@sgenes_val1){
     print FH2 $genes, "\n";
 }
 close FH2;
 
 my @sgenes_val2= sort { $a cmp $b}@genes_val2;
-my @fgenes_val2=uniq(@sgenes_val2);
-print LOG "\tC:",scalar @fgenes_val2,"\n";
+#my @fgenes_val2=uniq(@sgenes_val2);
+print LOG "\tC:",scalar @sgenes_val2,"\n";
 my $file3=$num."C".$ext;
 open (FH3,'>',$file3);
-foreach my $genes(@fgenes_val2){
+foreach my $genes(@sgenes_val2){
     print FH3 $genes, "\n";
 }
 close FH3;
