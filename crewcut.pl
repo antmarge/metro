@@ -80,6 +80,7 @@ while (my $line = <FH>) {               #Open the input file and go through each
     }
     
 ##################################  Filtering Genes   #####################################
+    
     my @values=split(',',$fields[2]);
     my $name=$values[0];
     my $id=$fields[0];
