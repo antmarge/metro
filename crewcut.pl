@@ -80,7 +80,7 @@ my $log="run.log";
 open(LOG,'>',$log);
 print LOG "Start: ",get_time(),"\n";
 print LOG "Gene significance is based on fold change (value2/value1)\n\nGene files within each comparison:\nA: All genes with nonzero values\nB:Genes with value1=0 and value2 != 0\nC:Genes with value1!=0 and value 2=0\n\n";
-
+my $key=0;
 while (my $line = <FH>) {               #Open the input file and go through each line
     my @fields = split("\t",$line);
     my $fields=\@fields;
@@ -88,23 +88,24 @@ while (my $line = <FH>) {               #Open the input file and go through each
     my $name=$values[0];
     my $id=$fields[0];
     ###Printing gene lists from single comparisons
-    
+
     if (($sample1 ne "none") && (($fields[4] ne $sample1) or ($fields[5] ne $sample2))){
+        
         $num++;
         
-        my $print1="$_ \t $gene_ids{$_} \n";
-        my $print2="$_ \t $gene_ids2{$_} \n";
-        my $print3="$_ \t $gene_ids3{$_} \n";
+        my $print1=" \t $gene_ids{$key} \n";
+        my $print2="$key \t $gene_ids2{$key} \n";
+        my $print3="$_ \t $gene_ids3{$key} \n";
         
         if ($id){
-            $print1="$gene_ids{$_} \n";
-            $print2="$gene_ids2{$_} \n";
-            $print3="$gene_ids3{$_} \n";
+            $print1="$gene_ids{$key} \n";
+            $print2="$gene_ids2{$key} \n";
+            $print3="$gene_ids3{$key} \n";
         }
         elsif ($name){
-            my $print1="$_ \n";
-            my $print2="$_ \n";
-            my $print3="$_ \n";
+            my $print1="$key \n";
+            my $print2="$key \n";
+            my $print3="$key \n";
         }
         elsif($rankprep){
             
@@ -121,6 +122,8 @@ while (my $line = <FH>) {               #Open the input file and go through each
         print LOG "\tA:",scalar %gene_ids,"\n";
         open (FH1,'>',$file1);
         foreach (sort keys %gene_ids) {
+             $key=$_;
+            print $key;
             print FH1 $print1;
         }
         close FH1;
@@ -131,6 +134,7 @@ while (my $line = <FH>) {               #Open the input file and go through each
         my $file2=$num."B".$ext;
         open (FH2,'>',$file2);
         foreach (sort keys %gene_ids2) {
+            $key="$_";
             print FH2 $print2;
         }
         close FH2;
@@ -141,6 +145,7 @@ while (my $line = <FH>) {               #Open the input file and go through each
         my $file3=$num."C".$ext;
         open (FH3,'>',$file3);
         foreach (sort keys %gene_ids3) {
+             $key=$_;
             print FH3 $print3;
         }
         close FH3;
@@ -201,21 +206,25 @@ while (my $line = <FH>) {               #Open the input file and go through each
 
 ####To do last comparison
 
+
 $num++;
 
-my $print1="$_ \t $gene_ids{$_} \n";
-my $print2="$_ \t $gene_ids2{$_} \n";
-my $print3="$_ \t $gene_ids3{$_} \n";
+my $print1=" \t $gene_ids{$key} \n";
+my $print2="$key \t $gene_ids2{$key} \n";
+my $print3="$_ \t $gene_ids3{$key} \n";
 
 if ($id){
-    $print1="$gene_ids{$_} \n";
-    $print2="$gene_ids2{$_} \n";
-    $print3="$gene_ids3{$_} \n";
+    $print1="$gene_ids{$key} \n";
+    $print2="$gene_ids2{$key} \n";
+    $print3="$gene_ids3{$key} \n";
 }
 elsif ($name){
-    my $print1="$_ \n";
-    my $print2="$_ \n";
-    my $print3="$_ \n";
+    my $print1="$key \n";
+    my $print2="$key \n";
+    my $print3="$key \n";
+}
+elsif($rankprep){
+    
 }
 
 
@@ -229,6 +238,7 @@ my $file1=$num."A".$ext;
 print LOG "\tA:",scalar %gene_ids,"\n";
 open (FH1,'>',$file1);
 foreach (sort keys %gene_ids) {
+    $key=$_;
     print FH1 $print1;
 }
 close FH1;
@@ -239,6 +249,7 @@ print LOG "\tB:",scalar keys %gene_ids2,"\n";
 my $file2=$num."B".$ext;
 open (FH2,'>',$file2);
 foreach (sort keys %gene_ids2) {
+    $key=$_;
     print FH2 $print2;
 }
 close FH2;
@@ -249,9 +260,11 @@ print LOG "\tC:",scalar keys %gene_ids3,"\n";
 my $file3=$num."C".$ext;
 open (FH3,'>',$file3);
 foreach (sort keys %gene_ids3) {
+    $key=$_;
     print FH3 $print3;
 }
 close FH3;
+
 
 print LOG "\nEnd: ",get_time,"\n";
 
