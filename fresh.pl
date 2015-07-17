@@ -25,9 +25,13 @@ GetOptions(
 
 
 sub printer{
-	print "--L1 \t enter entry number for first comparison sample1,sample2\n";
-	print "--L2 \t enter entry number for second comparison sample1,sample2\n";
-	print "--list \t name of file containing common genes between the two samples\n";
+    print "\n=======================================================================";
+    print "\nRequired:\n";
+    print "Without a flag, enter the genes.fpkm_tracking file from cuffdiff output\n";
+	print "--L1 \t enter entry codes for first comparison sample1,sample2\n";
+	print "--L2 \t enter entry codes for second comparison sample1,sample2\n";
+	print "--list \t name of file containing common genes between the two samples. Should be line delimited with XLOC ids\n\n";
+    print "=========================================================================\n";
 }
 
 sub log2{
@@ -38,8 +42,8 @@ sub log2{
 
 my @L1=split(",",$one);  #@L1=(21,33)
 my @L2=split(",",$two);  #@L2=(25,33)
-my $L1=\@L1;
-my $L2=\@L2;
+#my $L1=\@L1;
+#my $L2=\@L2;
 
 #Read file with common genes into array
 open (FH,'<',$list) or print "Cannot open input tracking file" and die;
@@ -54,13 +58,19 @@ my $common=\@common;
 #Open tracking file to pull comparisons
 # [4]-GeneSymbol
 open (TR,'<', $ARGV[0]) or print "Cannot open input tracking file" and die;
-if ($h){
 	my $line=<TR>;
 	my @header=split("\t",$line);
-	print "Entry codes for tracking file:\n";
-	for (my $i=0;$i<scalar @header;$i++){
-		print $i,":\t",$header[$i],"\n";
+	print "\nEntry codes for tracking file:\n";
+    if ($h){
+        my @codes;
+	for (my $i=9;$i<scalar @header;$i+=4){
+        push (@codes,$header[$i]);
 	}
+    my $n=1;
+    foreach my $c(@codes){
+        print $n,": ",$c,"\n";
+        $n++;
+    }
 	printer();
 	die;
 }
@@ -81,13 +91,18 @@ while (my $line=<TR>){
     my $name=$fields[0];
     if ($name eq "-"){next;}
     #print "$name\n";
-    my @imp=($fields[0],$fields[9],$fields[13],$fields[17],$fields[21],$fields[25],$fields[29],$fields[33]);
+    my @names=split(",",$fields[4]);
+    my $gene_name=$names[0];
+    my @imp=($gene_name);
+    for(my $i=9;$i<scalar @header;$i+=4){
+        push (@imp,$fields[$i]);
+    }
     print $name,":\t";
     foreach my $m(@imp){print $m,",";}
     print "\n";
-    if ($name ne "gene_short_name"){
+    #if ($name ne "gene_short_name"){
     $whole{$name}=[@imp];
-    }
+    #}
 	#print "Looking for: $common[$i]\n";
 }
 close TR;
@@ -116,13 +131,9 @@ foreach my $g(@common){
     if (!$help){next;}
     print $help,"\n";
     my @values=@$help;
-    #if ($values[4]==0 or $values[5]==0){
-    #    print OUT $g,"\n";
-    #    next;
-    #}
-    my $fc1=log2($values[7]/$values[4]);
-    my $fc2=log2($values[7]/$values[5]);
-    my @vals=($fc1,$fc2);
+    my $fc1=log2($values[$L1[1]]/$values[$L1[0]]);
+    my $fc2=log2($values[$L2[1]]/$values[$L2[0]]);
+    my @vals=($fc1,$fc2,$values[0]);
     @{$some{$g}}=@vals;
     #print "pushed";
 }
@@ -134,13 +145,11 @@ print "This is the size of the whole array: ".keys(%whole)."\n";
 close OUT;
 
 open CSV,'>',"out.csv";
-print CSV "gene,sh_controlvsh_5322,sh_controlvsh_5324\n";
+#print CSV "sh_controlvsh_5322,sh_controlvsh_5324,gene_name,gene_id\n";
 foreach (sort keys %some) {
-    print CSV "$_ , ";
     my @va=@{$some{$_}};
-        print CSV $va[0],",",$va[1];
-    
-    print CSV "\n";
+    print CSV $va[0],",",$va[1],",",$va[2];
+    print CSV ",$_ \n";
 }
 
 
