@@ -17,16 +17,23 @@ sub print_usage(){
     
     print "\nOptional:\n";
     print "--fc \t Lowest acceptable fold_change value Default: 2\n";
-    print "--ext \t specify output gene file extension (txt, sbt, etc). Default ext= txt for file.txt";
+    print "--ext \t specify output gene file extension (txt, sbt, etc). Default ext= txt for file.txt\n";
+    print "--id \t Use this flag for output to be Illumina XLOC id (Default is id and name)\n";
+    print "--name \t Use this falg for output to be gene names only(Default is id and name)\n";
+    print "--rankprep \t Use this flag for output to be formatted for conducting statistical rank correlations in R. First two columns will be the log2(fc) for the two comparisons.\n";
 }
 
 
 #Assign inputs to variables
 
-our ($fc, $ext);
+our ($fc,$ext,$id,$name,$rankprep);
+
 GetOptions(
-'fc:i' => \$fc,
-'ext' => \$ext,
+    'fc:i' => \$fc,
+    'ext' => \$ext,
+    'id' => \$id,
+    'name' => \$name,
+    'rankprep' => \$rankprep,
 );
 
 sub get_time() {
@@ -84,6 +91,27 @@ while (my $line = <FH>) {               #Open the input file and go through each
     
     if (($sample1 ne "none") && (($fields[4] ne $sample1) or ($fields[5] ne $sample2))){
         $num++;
+        
+        my $print1="$_ \t $gene_ids{$_} \n";
+        my $print2="$_ \t $gene_ids2{$_} \n";
+        my $print3="$_ \t $gene_ids3{$_} \n";
+        
+        if ($id){
+            $print1="$gene_ids{$_} \n";
+            $print2="$gene_ids2{$_} \n";
+            $print3="$gene_ids3{$_} \n";
+        }
+        elsif ($name){
+            my $print1="$_ \n";
+            my $print2="$_ \n";
+            my $print3="$_ \n";
+        }
+        elsif($rankprep){
+            
+        }
+     
+
+        
         print LOG "Comparison $num: $sample1 v $sample2\n";
         #write @temp array to file and start a new data set
         
@@ -93,7 +121,7 @@ while (my $line = <FH>) {               #Open the input file and go through each
         print LOG "\tA:",scalar %gene_ids,"\n";
         open (FH1,'>',$file1);
         foreach (sort keys %gene_ids) {
-            print FH1 "$_ \t $gene_ids{$_} \n";
+            print FH1 $print1;
         }
         close FH1;
         
@@ -103,7 +131,7 @@ while (my $line = <FH>) {               #Open the input file and go through each
         my $file2=$num."B".$ext;
         open (FH2,'>',$file2);
         foreach (sort keys %gene_ids2) {
-            print FH2 "$_\t$gene_ids2{$_}\n";
+            print FH2 $print2;
         }
         close FH2;
         
@@ -113,7 +141,7 @@ while (my $line = <FH>) {               #Open the input file and go through each
         my $file3=$num."C".$ext;
         open (FH3,'>',$file3);
         foreach (sort keys %gene_ids3) {
-            print FH3 "$_ \t$gene_ids3{$_}\n";
+            print FH3 $print3;
         }
         close FH3;
 
@@ -173,43 +201,57 @@ while (my $line = <FH>) {               #Open the input file and go through each
 
 ####To do last comparison
 
-    $num++;
-    print LOG "Comparison $num: $sample1 v $sample2\n";
-    #write @temp array to file and start a new data set
-    
-    #my @sgenes= sort {$a cmp $b}@genes; #alphabetically sort each of the three gene lists
-    #my @fgenes=uniq(@sgenes); #filter gene lists to only include each gene once
-    my $file1=$num."A".$ext;
-    print LOG "\tA:",scalar %gene_ids,"\n";
-    open (FH1,'>',$file1);
-    foreach (sort keys %gene_ids) {
-        print FH1 "$_ \t ";
-        print FH1 $gene_ids{$_},"\n";
-    }
-    close FH1;
+$num++;
 
-    #my @sgenes_val1= sort { $a cmp $b}@genes_val1;
-    #my @fgenes_val1=uniq(@sgenes_val1);
-    print LOG "\tB:",scalar keys %gene_ids2,"\n";
-    my $file2=$num."B".$ext;
-    open (FH2,'>',$file2);
-    foreach (sort keys %gene_ids2) {
-        print FH2 "$_ \t ";
-        print FH2 $gene_ids2{$_},"\n";
-    }
-    close FH2;
-    
-    #my @sgenes_val2= sort { $a cmp $b}@genes_val2;
-    #my @fgenes_val2=uniq(@sgenes_val2);
-    print LOG "\tC:",scalar keys %gene_ids3,"\n";
-    my $file3=$num."C".$ext;
-    open (FH3,'>',$file3);
-    foreach (sort keys %gene_ids3) {
-        print FH3 "$_ \t ";
-        print FH3 $gene_ids3{$_},"\n";
-    }
-    close FH3;
+my $print1="$_ \t $gene_ids{$_} \n";
+my $print2="$_ \t $gene_ids2{$_} \n";
+my $print3="$_ \t $gene_ids3{$_} \n";
 
+if ($id){
+    $print1="$gene_ids{$_} \n";
+    $print2="$gene_ids2{$_} \n";
+    $print3="$gene_ids3{$_} \n";
+}
+elsif ($name){
+    my $print1="$_ \n";
+    my $print2="$_ \n";
+    my $print3="$_ \n";
+}
+
+
+
+print LOG "Comparison $num: $sample1 v $sample2\n";
+#write @temp array to file and start a new data set
+
+#my @sgenes= sort {$a cmp $b}@genes; #alphabetically sort each of the three gene lists
+#my @fgenes=uniq(@sgenes); #filter gene lists to only include each gene once
+my $file1=$num."A".$ext;
+print LOG "\tA:",scalar %gene_ids,"\n";
+open (FH1,'>',$file1);
+foreach (sort keys %gene_ids) {
+    print FH1 $print1;
+}
+close FH1;
+
+#my @sgenes_val1= sort { $a cmp $b}@genes_val1;
+#my @fgenes_val1=uniq(@sgenes_val1);
+print LOG "\tB:",scalar keys %gene_ids2,"\n";
+my $file2=$num."B".$ext;
+open (FH2,'>',$file2);
+foreach (sort keys %gene_ids2) {
+    print FH2 $print2;
+}
+close FH2;
+
+#my @sgenes_val2= sort {$a cmp $b}@genes_val2;
+#my @fgenes_val2=uniq(@sgenes_val2);
+print LOG "\tC:",scalar keys %gene_ids3,"\n";
+my $file3=$num."C".$ext;
+open (FH3,'>',$file3);
+foreach (sort keys %gene_ids3) {
+    print FH3 $print3;
+}
+close FH3;
 
 print LOG "\nEnd: ",get_time,"\n";
 
