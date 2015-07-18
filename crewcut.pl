@@ -69,7 +69,6 @@ print "\nParsing the file...\n\n";
 
 while (my $line = <FH>) {               #Open the input file and go through each line
     my @fields = split("\t",$line);
-    my $fields=\@fields;
 
     ###Printing gene lists from single comparisons
     
@@ -102,7 +101,7 @@ while (my $line = <FH>) {               #Open the input file and go through each
         }
         #dealing with non-zero fpkms in both sides of comparison
         else{
-            $fold_change=$fields[8]/$fields[7];
+            $fold_change=max($fields[8]/$fields[7],$fields[8]/$fields[7]);
             if ($fold_change>=$fc){
                 $gene_ids{$id}=$name;
             }
@@ -116,7 +115,7 @@ while (my $line = <FH>) {               #Open the input file and go through each
 ####To do last comparison
     $num++;
 
-sub printer{
+sub printerName{
     
     my $anum=scalar keys %gene_ids;
     my $bnum=scalar keys %gene_ids2;
