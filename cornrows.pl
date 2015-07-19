@@ -58,8 +58,8 @@ if ($db eq "webgestalt"){
     close INPUT;
     
     print "\nCreating pathway name file\n";
-    my $file=$out."_wb_pathways.txt";
-    open (FH1,'>',$file);
+    my $outfile=$out."_wb_pathways.txt";
+    open (FH1,'>',$outfile);
     foreach my $path(@pathways){
         print FH1 $path, "\n";
     }
