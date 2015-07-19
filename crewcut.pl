@@ -5,6 +5,8 @@
 
 #.diff file description: 0-test_id 1-gene_id 2-gene 3-locus 4-sample_1 5-sample_2 6-status 7-value_1 8-value_2 9-log2(fold_change) 10-p_value 11_q-value 12-significant
 
+#0-test_id	1-gene_id	2-gene	3-locus	4-sample_1	5-sample_2	status	7-value_1	8-value_2	log2(fold_change)	test_stat	p_value	q_value	significant
+
 
 use strict;
 use warnings;
@@ -18,16 +20,21 @@ sub print_usage(){
     
     print "\nOptional:\n";
     print "--fc \t Lowest acceptable fold_change value Default: 2\n";
-    print "--ext \t specify output gene file extension (txt, sbt, etc). Default ext= txt for file.txt";
+    print "--ext \t specify output gene file extension (txt, sbt, etc). Default ext= txt for file.txt\n";
+    print "--name \t flag for outputing only gene name\n";
+    print "--id \t flag for outputing only gene id (XLOC)\n";
 }
 
+my $countOK=0;
 
 #Assign inputs to variables
 
-our ($fc, $ext);
+our ($fc, $ext,$name,$id);
 GetOptions(
 'fc:i' => \$fc,
 'ext' => \$ext,
+'name'=>\$name,
+'id'=>\$id,
 );
 
 sub get_time() {
@@ -40,6 +47,7 @@ print print_usage(),"\n";
 print "\n";
 my @logger;
 my $log="run.log";
+
 
 if (!$fc){$fc=2;}
 if (!$ext){$ext=".txt";}
@@ -67,7 +75,6 @@ my $foldnum="Fold change filter used: max (value2/value1,value1/value2) > $fc\n"
 push (@logger,$description,$foldnum);
 
 print "\nParsing the file...\n\n";
-
 while (my $line = <FH>) {               #Open the input file and go through each line
     my @fields = split("\t",$line);
 
@@ -84,9 +91,10 @@ while (my $line = <FH>) {               #Open the input file and go through each
     my @values=split(',',$fields[2]);
     my $name=$values[0];
     my $id=$fields[0];
-    
     #Only want known genes whose status is OK. Remove FAILED and NOTEST
+
     if (($fields[6] eq "OK") and ($fields[2] ne "-")) {
+          $countOK++;
         #dealing with zero fpkms---listB, listC, or ignore
         if ($fields[7]==0 or $fields[8]==0){
             if ($fields[7]==0){
@@ -116,14 +124,44 @@ while (my $line = <FH>) {               #Open the input file and go through each
 ####To do last comparison
     $num++;
 
+
+#print the last comparison
+printer();
+
+my $end=get_time();
+push (@logger,$end);
+
+print "Writing the log file...\n\n";
+#Write the log file
+open(LOGG,'>',$log);
+foreach my $l(@logger){
+    print LOGG $l,"\n";
+}
+close LOGG;
+
+print "Finished ",get_time()," \n\n";
+
 sub printer{
+    if ($name){
+        printName();
+    }
+    elsif ($id){
+        printID();
+    }
+    else{
+        printAll();
+        
+    }
+}
+sub printAll{
     
     my $anum=scalar keys %gene_ids;
     my $bnum=scalar keys %gene_ids2;
     my $cnum=scalar keys %gene_ids3;
     my $stats="Comparison $num: $sample1 v $sample2\n\tA: $anum\n\tB: $bnum\n\tC: $cnum\n";
+        push (@logger,$countOK);
     push (@logger,$stats);
-
+    
     my $file1=$num."A".$ext;
     open (FH1,'>',$file1);
     foreach (sort keys %gene_ids) {
@@ -131,7 +169,7 @@ sub printer{
         print FH1 $gene_ids{$_},"\n";
     }
     close FH1;
-
+    
     my $file2=$num."B".$ext;
     open (FH2,'>',$file2);
     foreach (sort keys %gene_ids2) {
@@ -139,7 +177,7 @@ sub printer{
         print FH2 $gene_ids2{$_},"\n";
     }
     close FH2;
-
+    
     my $file3=$num."C".$ext;
     open (FH3,'>',$file3);
     foreach (sort keys %gene_ids3) {
@@ -152,20 +190,80 @@ sub printer{
     %gene_ids=();
     %gene_ids2=();
     %gene_ids3=();
+    $countOK=0;
 }
 
-#print the last comparison
-printer();
 
-my $end=get_time();
-push (@logger,$end);
-
-#Write the log file
-open(LOGG,'>',$log);
-foreach my $l(@logger){
-    print LOGG $l,"\n";
+sub printID{
+    
+    my $anum=scalar keys %gene_ids;
+    my $bnum=scalar keys %gene_ids2;
+    my $cnum=scalar keys %gene_ids3;
+    my $stats="Comparison $num: $sample1 v $sample2\n\tA: $anum\n\tB: $bnum\n\tC: $cnum\n";
+        push (@logger,$countOK);
+    push (@logger,$stats);
+    
+    my $file1=$num."A".$ext;
+    open (FH1,'>',$file1);
+    foreach (sort keys %gene_ids) {
+        print FH1 "$_\n";
+    }
+    close FH1;
+    
+    my $file2=$num."B".$ext;
+    open (FH2,'>',$file2);
+    foreach (sort keys %gene_ids2) {
+        print FH2 "$_\n";
+    }
+    close FH2;
+    
+    my $file3=$num."C".$ext;
+    open (FH3,'>',$file3);
+    foreach (sort keys %gene_ids3) {
+        print FH3 "$_\n";
+    }
+    close FH3;
+    
+    #clear hashes
+    %gene_ids=();
+    %gene_ids2=();
+    %gene_ids3=();
+    $countOK=0;
 }
-close LOGG;
 
-print "Finished ",get_time()," \n\n";
-
+sub printName{
+    
+    my $anum=scalar keys %gene_ids;
+    my $bnum=scalar keys %gene_ids2;
+    my $cnum=scalar keys %gene_ids3;
+    my $stats="Comparison $num: $sample1 v $sample2\n\tA: $anum\n\tB: $bnum\n\tC: $cnum\n";
+    push (@logger,$countOK);
+    push (@logger,$stats);
+    
+    my $file1=$num."A".$ext;
+    open (FH1,'>',$file1);
+    foreach (sort keys %gene_ids) {
+        print FH1 $gene_ids{$_},"\n";
+    }
+    close FH1;
+    
+    my $file2=$num."B".$ext;
+    open (FH2,'>',$file2);
+    foreach (sort keys %gene_ids2) {
+        print FH2 $gene_ids2{$_},"\n";
+    }
+    close FH2;
+    
+    my $file3=$num."C".$ext;
+    open (FH3,'>',$file3);
+    foreach (sort keys %gene_ids3) {
+        print FH3 $gene_ids3{$_},"\n";
+    }
+    close FH3;
+    
+    #clear hashes
+    %gene_ids=();
+    %gene_ids2=();
+    %gene_ids3=();
+    $countOK=0;
+}
