@@ -53,11 +53,9 @@ for (my $i=0; $i < $numFiles; $i++) {
     
     my @trash= split("/","$file");
     my $trash_size=scalar @trash;
-    my $trash=\@trash;
     my $last=$trash[$trash_size-1];
     my @sec=split("_","$last");
-    my $sec=\@sec;
-    my $comp=$sec[1];
+    my $comp=$sec[0];
     push(@filenames,$comp);
     my $topPaths=\@topPaths;
     $inputs{$comp}=$topPaths;
