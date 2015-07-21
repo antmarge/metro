@@ -36,6 +36,7 @@ sub printer{
 
 sub log2{
     my $n = shift;
+    #print $n,"\t";
     return log($n)/log(2);
 }
 #fix labels as arrays
