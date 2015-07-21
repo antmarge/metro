@@ -17,17 +17,18 @@ sub print_usage(){
     print "\nRequired:\n";
     print "In the command line (without a flag), input the names of the files containing the top pathways for each comparison (line delimited)\n";
     print "--paths \t Name of text file (line delimited) containing all unique pathways found in the input files\n";
-
+    print "--top  \t Integer number for highest acceptable rank for pathway to be included in table\n";
 }
-our ($paths);
+our ($paths,$top);
 
 GetOptions(
 'paths=s' =>\$paths,
+'top:i' =>\$top,
     #Should add label option
 );
 
 my @filenames;
-
+if (!$top){$top=10;}
 
 
 #Get the names of the files comparisons into an array called @filenames
@@ -118,7 +119,7 @@ foreach my $p(@pathways){
         push (@ranks,$index);
         print " $index";
     }
-    if ($lowest<20){
+    if ($lowest<$top){
         $rank_of{$p}=[@ranks];
     }
 }
