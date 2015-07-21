@@ -68,15 +68,19 @@ my $sample2="none";
 my %gene_ids;
 my %gene_ids2;
 my %gene_ids3;
+my @gene_ids4; #non zero fc---will use for ranking
+my $total=0; #number of all genes (annotated and unannotated)
+my $totalAn=0; #number of total genes annotated
 
 push (@logger,$start);
-my $description="\nGene files within each comparison:\nA: All genes with nonzero values\nB:Genes with value1=0 and value2 != 0\nC:Genes with value1!=0 and value 2=0\n\n";
+my $description="\nGene files within each comparison:\nA: All genes with nonzero values\nB:Genes with value1=0 and value2 != 0\nC:Genes with value1!=0 and value 2=0\nD:Genes that have a non-zero fold change (annotated or not annotated)\n";
 my $foldnum="Fold change filter used: max (value2/value1,value1/value2) > $fc\n";
 push (@logger,$description,$foldnum);
 
 print "\nParsing the file...\n\n";
 while (my $line = <FH>) {               #Open the input file and go through each line
     my @fields = split("\t",$line);
+    $total++;
 
     ###Printing gene lists from single comparisons
     
@@ -91,10 +95,18 @@ while (my $line = <FH>) {               #Open the input file and go through each
     my @values=split(',',$fields[2]);
     my $name=$values[0];
     my $id=$fields[0];
-    #Only want known genes whose status is OK. Remove FAILED and NOTEST
+    
 
+    
+    #Only want known genes whose status is OK. Remove FAILED and NOTEST
+    if ($fields[2] ne "-"){
+        $totalAn++;
+        if ($fields[7]!=0 and $fields[8]!=0){
+            push(@gene_ids4,$id);
+        }
+    }
     if (($fields[6] eq "OK") and ($fields[2] ne "-")) {
-          $countOK++;
+     
         #dealing with zero fpkms---listB, listC, or ignore
         if ($fields[7]==0 or $fields[8]==0){
             if ($fields[7]==0){
@@ -159,8 +171,9 @@ sub printAll{
     my $bnum=scalar keys %gene_ids2;
     my $cnum=scalar keys %gene_ids3;
     my $stats="Comparison $num: $sample1 v $sample2\n\tA: $anum\n\tB: $bnum\n\tC: $cnum\n";
-        push (@logger,$countOK);
+    my $totals="Total number of annotated genes: $totalAn\nTotal number of genes:$total";
     push (@logger,$stats);
+    push (@logger, $totals);
     
     my $file1=$num."A".$ext;
     open (FH1,'>',$file1);
@@ -190,7 +203,8 @@ sub printAll{
     %gene_ids=();
     %gene_ids2=();
     %gene_ids3=();
-    $countOK=0;
+    $totalAn=0;
+    $total=0;
 }
 
 
@@ -199,9 +213,11 @@ sub printID{
     my $anum=scalar keys %gene_ids;
     my $bnum=scalar keys %gene_ids2;
     my $cnum=scalar keys %gene_ids3;
-    my $stats="Comparison $num: $sample1 v $sample2\n\tA: $anum\n\tB: $bnum\n\tC: $cnum\n";
-        push (@logger,$countOK);
+    my $dnum=scalar @gene_ids4;
+    my $stats="Comparison $num: $sample1 v $sample2\n\tA: $anum\n\tB: $bnum\n\tC: $cnum\n\tD: $dnum\n";
+    my $totals="\tTotal number of annotated genes: $totalAn\n\tTotal number of genes:$total\n";
     push (@logger,$stats);
+    push (@logger, $totals);
     
     my $file1=$num."A".$ext;
     open (FH1,'>',$file1);
@@ -224,11 +240,20 @@ sub printID{
     }
     close FH3;
     
+    my $file4=$num."D".$ext;
+    open (FH4,'>',$file4);
+    foreach my $e(@gene_ids4) {
+        print FH4 "$e\n";
+    }
+    close FH4;
+    
     #clear hashes
     %gene_ids=();
     %gene_ids2=();
     %gene_ids3=();
-    $countOK=0;
+    $totalAn=0;
+    $total=0;
+    @gene_ids4=();
 }
 
 sub printName{
@@ -237,8 +262,9 @@ sub printName{
     my $bnum=scalar keys %gene_ids2;
     my $cnum=scalar keys %gene_ids3;
     my $stats="Comparison $num: $sample1 v $sample2\n\tA: $anum\n\tB: $bnum\n\tC: $cnum\n";
-    push (@logger,$countOK);
+    my $totals="Total number of annotated genes: $totalAn\nTotal number of genes:$total";
     push (@logger,$stats);
+    push (@logger, $totals);
     
     my $file1=$num."A".$ext;
     open (FH1,'>',$file1);
@@ -265,5 +291,6 @@ sub printName{
     %gene_ids=();
     %gene_ids2=();
     %gene_ids3=();
-    $countOK=0;
+    $totalAn=0;
+    $total=0;
 }
