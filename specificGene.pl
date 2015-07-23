@@ -35,7 +35,7 @@ sub get_time() {
 
 print print_usage(),"\n";
 print "\n";
-
+if (!$out){$out=$genes."txt"}
 if (!$genes){print "Enter gene name (or gene names as a comma separated list) to search for in .diff file!" and die;}
 
 print get_time;
@@ -49,7 +49,7 @@ my @genes=split(",",$genes);
 open OUT, ">$out.csv";
 my $fc;
 
-print OUT get_time,"\ngene,comparison,test_status,value_1,value_2,log2FC,FC\n";
+print OUT get_time,"\nXLOC,gene,comparison,test_status,value_1,value_2,log2FC,FC\n";
 foreach my $g(@genes){
     print "Looking for $g...\n";
     open(IN, '<', $file) or die "Could not open '$file' $!\n";
@@ -59,9 +59,8 @@ foreach my $g(@genes){
         my @fields = split("\t",$line);
         my $fields=\@fields;
         if ($fields[2] eq "$g"){
-            print "Found $g !\n";
             if ($fields[7]!=0 && $fields[8]!=0){
-                $fc=max($fields[7]/$fields[8],$fields[8],$fields[7]);
+                $fc=max($fields[7]/$fields[8],$fields[8]/$fields[7]);
             }
             else{
                 if ($fields[7]==0){
@@ -78,5 +77,4 @@ print OUT "\n";
 close IN;
 }
 
-close OUT;
-
+close OUT
