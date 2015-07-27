@@ -268,22 +268,22 @@ sub printName{
     
     my $file1=$num."A".$ext;
     open (FH1,'>',$file1);
-    foreach (sort keys %gene_ids) {
-        print FH1 $gene_ids{$_},"\n";
+    foreach (sort values %gene_ids) {
+        print FH1 $_,"\n";
     }
     close FH1;
     
     my $file2=$num."B".$ext;
     open (FH2,'>',$file2);
-    foreach (sort keys %gene_ids2) {
-        print FH2 $gene_ids2{$_},"\n";
+    foreach (sort values %gene_ids2) {
+        print FH2 $_,"\n";
     }
     close FH2;
     
     my $file3=$num."C".$ext;
     open (FH3,'>',$file3);
-    foreach (sort keys %gene_ids3) {
-        print FH3 $gene_ids3{$_},"\n";
+    foreach (sort values %gene_ids3) {
+        print FH3 $_,"\n";
     }
     close FH3;
     
