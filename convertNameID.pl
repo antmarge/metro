@@ -12,6 +12,7 @@
 use strict;
 use warnings;
 use Getopt::Long;
+use Getopt::Long qw(GetOptionsFromArray);
 
 sub print_usage(){
     print "perl convertNameID.pl <input-geneNameList.txt> <diff file>";
@@ -42,16 +43,6 @@ my %dict;
 my @alist=split(".",$list);
 #my $outName=$alist[0]."_XLOC.txt";
 
-#if ($alist[1] ne 'txt'){
-#   print "Wrong format for gene list! Need line delimited text file\n";
-#   die;
-#}
-#my @adiff=split(".",$diff);
-#if ($alist[scalar @alist -1] ne "diff"){
-#    print "Wrong format for gene_exp.diff file! Need output from cuffdiff called gene_exp.diff\n";
-#    die;
-#}
-
 #Open gene_exp.diff file and make hash table of unique genes and their corresponding ids
 open (DIFF,'<',$diff);
 #or (print "No gene_exp.diff file found!" and die);
@@ -61,7 +52,6 @@ while (my $line=<DIFF>){
     my @many=split(",",$fields[2]);
     my $name=$many[0];
     my $id=$fields[1];
-    print $name, "\t",$id,"\n";
     $dict{$name}=$id if (!($dict{$name}))
 }
 close DIFF;
@@ -79,14 +69,12 @@ my @inputNames=split("\n",$string);
 
 my @outputIDS;
 foreach my $gene(@inputNames){
-    print $dict{$gene};
-    push (@outputIDS,$dict{$gene})
-
-    
+    push (@outputIDS,$dict{$gene}) if exists $dict{$gene};
 }
 open (OUT,'>',"out.txt");
 foreach my $on(@outputIDS){
     print OUT $on, "\n";
+    
 }
 close OUT;
     
