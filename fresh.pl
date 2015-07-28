@@ -15,14 +15,12 @@ use strict;
 use warnings;
 use Getopt::Long;
 
-our ($one, $list,$two,$h);
+our ($one,$two,$h);
 GetOptions(
 'L1:s' => \$one,
 'L2:s' => \$two,
-'list=s'=>\$list,
 'h'=>\$h,
 );
-
 
 sub printer{
     print "\n=======================================================================";
@@ -36,51 +34,46 @@ sub printer{
 
 sub log2{
     my $n = shift;
-    #print $n,"\t";
-    return log($n)/log(2);
+    return (log($n)/log(2));
 }
-#fix labels as arrays
-
-my @L1=split(",",$one);  #@L1=(21,33)
-my @L2=split(",",$two);  #@L2=(25,33)
-#my $L1=\@L1;
-#my $L2=\@L2;
+my $list=$ARGV[0];
+my $tracker=$ARGV[1];
 
 #Read file with common genes into array
-print "This is the titlename:",$list;
+#print "This is the titlename:",$list;
+
 my @title=split(/\./,$list);
 my $t=$title[0];
-print "\n",$t;
-foreach my $s(@title){
-print $s,"\t";
-}
+
 open (FH,'<',$list) or print "Cannot open input tracking file" and die;
 my $string="";
 while (<FH>){
     $string.=$_;
 }
 close FH;
+
 my @common=split("\n",$string);
-my $common=\@common;
 
 #Open tracking file to pull comparisons
 # [4]-GeneSymbol
-open (TR,'<', $ARGV[0]) or print "Cannot open input tracking file" and die;
-	my $line=<TR>;
-	my @header=split("\t",$line);
-    if ($h){
-	print "\nEntry codes for tracking file:\n";
-        my @codes;
-	for (my $i=9;$i<scalar @header;$i+=4){
+open (TR,'<', $tracker) or print "Cannot open input tracking file" and die;
+print "This is the tracking file: $ARGV[0]";
+my $line=<TR>;
+my @header=split("\t",$line);
+
+if ($h){
+    print "\nEntry codes for tracking file:\n";
+    my @codes;
+    for (my $i=9;$i<scalar @header;$i+=4){
         push (@codes,$header[$i]);
-	}
+    }
     my $n=1;
     foreach my $c(@codes){
         print $n,": ",$c,"\n";
         $n++;
     }
-	printer();
-	die;
+    printer();
+    die;
 }
 
 my $index=0;
@@ -89,40 +82,21 @@ my %whole;
 
 #my @whole; #have to read the whole gene.fpkm_tracking file into an array because need to sort it alphabetically
 
-my @CSVhead;
-
 while (my $line=<TR>){
-	#print "Got to while loop";
-    #print $line;
-	my @fields=split("\t",$line);
-    #print $fields[4],"\n";
-    my $name=$fields[0];
-    if ($name eq "-"){next;}
-    #print "$name\n";
+    my @fields=split("\t",$line);
+    my $id=$fields[0];
     my @names=split(",",$fields[4]);
     my $gene_name=$names[0];
     my @imp=($gene_name);
     for(my $i=9;$i<scalar @header;$i+=4){
         push (@imp,$fields[$i]);
     }
-   # print $name,":\t";
-   # foreach my $m(@imp){print $m,",";}
-   # print "\n";
-    if ($name ne "gene_short_name"){
-    	$whole{$name}=[@imp];
+    if ($id ne "tracking_id"){
+    	$whole{$id}=[@imp];
     }
 	#print "Looking for: $common[$i]\n";
 }
 close TR;
-
-#foreach (sort keys %whole) {
-    #print "$_ : ";
-    #my @va=@{$whole{$_}};
-    #foreach my $a (@va){
-     #   print $a,"\t";
-   # }
-   # print "\n";
-#}
 
 #Sort both lists
 #my @swhole=sort { $a->[4] cmp $b->[4]} @whole;
@@ -132,20 +106,33 @@ my $l=0;
 my @zero=();
 print "\n";
 print "\nThis is how big the whole array is: ",scalar %whole,"\n";
+print "\nPulling out genes XLOC ids and calculating fold change\n";
 foreach my $g(@common){
    # print $g,"\t";
     my $help=$whole{$g};
     if (!$help){next;}
     #print $help,"\n";
     my @values=@$help;
-    if (($values[$L1[1]]!=0) and ($values[$L2[1]]!=0)){
-   	 my $fc1=log2($values[$L1[1]]/$values[$L1[0]]);
-   	 my $fc2=log2($values[$L2[1]]/$values[$L2[0]]);
-   	 my @vals=($fc1,$fc2,$values[0]);
-   	 @{$some{$g}}=@vals;
+    my @vals;
+    my @L1=split(",",$one);
+    if (($values[$L1[0]]!=0) and ($values[$L1[1]]!=0)){
+        my $fc1=log2($values[$L1[1]]/$values[$L1[0]]);
+        push (@vals,$values[$L1[1]]);
+        
+    }
+    if ($two){
+    my @L2=split(",",$two);  #@L2=(25,33)
+    if (($values[$L2[0]]!=0) and ($values[$L2[1]]!=0)){
+        my $fc2=log2($values[$L2[1]]/$values[$L2[0]]);
+        push (@vals,$fc2);
+    }
+    }
+    if (scalar @vals !=0){
+        push (@vals,$values[0]);
+        @{$some{$g}}=@vals;
 	}
     else{
-	push (@zero,$g);
+        push (@zero,$g);
     }
 }
 
@@ -161,13 +148,15 @@ if (scalar @zero !=0){
      }
 }
 close OUT;
-
+print "\n Writing to the output file\n";
 open CSV,'>',"$t.csv";
 print CSV "comp1,comp2,gene_name,gene_id\n";
 foreach (sort keys %some) {
     my @va=@{$some{$_}};
-    print CSV $va[0],",",$va[1],",",$va[2];
-    print CSV ",$_ \n";
+    foreach (@va){
+        print CSV "$_,";
+    }
+    print CSV "$_ \n";
 }
 
 
