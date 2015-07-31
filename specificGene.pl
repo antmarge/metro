@@ -14,26 +14,29 @@ use Data::Dumper qw(Dumper);
 
 sub print_usage(){
     
-    print "\nRequired:\n";
-    print "perl specificGene.pl <input_file.diff> --gene <name_of_GOI> --out <output_filename>\n";
-    print "-h\t prints usage and options\n";
-    print "-g\t Enter single gene name, comma-separated gene names, or a line delimited text file)\n";
-    print "-id\t Identify gene by id (Default: identifies gene by name)\n";
+    print "\nRetrieves log2(fc) values for specific genes in all comparisons in a gene_exp.diff file. Can be used for quick retrieval of single gene information or to set up for a heatmap for expression of multiple genes (belonging to a group or pathway, for example) across comparisons\n\n"
     
-    print "\nNOTES:\n";
-    print "Outputs 0 for log2(fc) if test status was not 'OK'\n";
+    print "\nRequired:\n";
+    print "perl specificGene.pl [options] <input_file.diff> --genes <name(s)_of_GOI or csv/txt file> \n";
+    print "-h\t prints usage and options\n";
+    print "-g\t Enter single gene name, comma-separated gene names, or comma separated csv or text file)\n";
+    print "-out\t Output all data to .csv file with comparison as filename. Default: Standard Output to terminal\n";
+    print "-id\t Identify gene by id (Default: identifies gene by name)\n";
+    print "-status\t How to treat genes with a non OK test status. Defualt use 0 in place of log2(fc)\n";
+
 }
 
 
 #Assign inputs to variables
 
-our ($g, $out, $h,$id,$name);
+our ($g, $out,$status,$h,$id,$name);
 GetOptions(
 'g:s' => \$g,
 'out' => \$out,
 'h' =>\$h,
 'id'=>\$id,
 'name'=>\$name,
+'status'=>\$status,
 );
 if ($h){
     print print_usage();
@@ -45,18 +48,15 @@ sub get_time() {
     my @days = qw(Sun Mon Tue Wed Thu Fri Sat Sun);
     return "$days[$wday] $mday $months[$mon] at $hour:$min:$sec \n";
 }
-my @genes=();
+
+my @gene_list=();
 sub readText(){
-    my $file=$g;
     my $string="";
-    open (FH,'<',$file);
-    while(<FH>){
-        $string.=$_;
-    }
-    close FH;
-    my @array=("\n",$string);
-    s{^\s+|\s+$}{}g foreach @array;  #get rid of any white spaces that might have been accidentally written into the file
-    @genes=[@array];
+    open (LIST,'<',$g) or (print "Cannot open input gene text file" and die);
+    $string=<LIST>;
+    close LIST;
+    @gene_list=split(",",$string);
+    s{^\s+|\s+$}{}g foreach @gene_list;  #get rid of any white spaces that might have been accidentally written into the file
 }
 
 print print_usage(),"\n";
@@ -69,15 +69,16 @@ print "\n";
 if (!$g){
     print "Enter gene name, gene names as a comma separated list, or a text file) to search for genes!" and die;
 }
+if (!$status){$status=0);
 
 my @textTest=split(/\./,$g);
-
-if (($textTest[scalar @textTest -1] eq "txt")){
-    my $temp=readText();
-    @genes=@$temp;
+my $ext=$textTest[scalar @textTest -1];
+if (( $ext eq "txt") or ( $ext eq "csv")  ){
+    readText();
+    print "This is the gene list: \n";
 }
 else{
-    @genes=split(",",$g);
+    @gene_list=split(",",$g);
 }
 
 
@@ -99,8 +100,8 @@ my $fc;
 
 #print OUT get_time,"\nXLOC,gene,comparison,test_status,value_1,value_2,log2FC,FC\n";
 my %dict;  #keys=comp, values= (fc, identifer)
-foreach my $g(@genes){
-    print "Looking for $g...\n";
+foreach my $gen(@gene_list){
+    print "Looking for $gen...\n";
     open(IN, '<', $file) or die "Could not open '$file' $!\n";
     my $first=<IN>;
     
@@ -111,7 +112,7 @@ foreach my $g(@genes){
         my $fields=\@fields;
         my $id=$fields[1];
         my $name=$fields[2];
-        if ($name eq "$g"){
+        if ($name eq "$gen"){
             my $identifier=$name;
             if ($id){
                 $identifier=$id;
@@ -119,11 +120,16 @@ foreach my $g(@genes){
             my $comp="$fields[4] v $fields[5]";
             my $logfc=$fields[9];
             if ($fields[6] ne "OK"){
-                $logfc="n/a";
+                $logfc=$status;
             }
             my @vals=($logfc,$identifier);
 
-            $dict{$comp}{$name}=$logfc;
+            if (!(defined $dict{$comp}{$name})){
+                $dict{$comp}{$name}=$logfc;
+            }
+            elsif (($dict{$comp}{$name} eq "nOK") and ($logfc ne "nOK")){
+                $dict{$comp}{$name}=$logfc;
+            }
                 #print OUT $identifier,",",$comp,",",$logfc,"\n";
         }
     }   #finished going through the whole input file looking for specific gene(s)
@@ -132,13 +138,14 @@ foreach my $g(@genes){
 close IN;
 }
 if ($out){
-    foreach my $comp (sort keys %dict) {
-        open OUT,'>',$comp.".csv";
-        foreach my $geneName (keys %{ $dict{$comp} }) {
-            print OUT $geneName,",",$dict{$comp}{$geneName},"\n";
+    foreach my $outComp (sort keys %dict) {
+        open OUT,'>',$outComp.".csv";
+        foreach my $geneName (keys %{ $dict{$outComp} }) {
+            print OUT $geneName,",",$dict{$outComp}{$geneName},"\n";
         }
         close OUT;
     }
+    
 }
 else{
     print Dumper \%dict;
