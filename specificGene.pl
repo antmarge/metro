@@ -14,7 +14,7 @@ use Data::Dumper qw(Dumper);
 
 sub print_usage(){
     
-    print "\nRetrieves log2(fc) values for specific genes in all comparisons in a gene_exp.diff file. Can be used for quick retrieval of single gene information or to set up for a heatmap for expression of multiple genes (belonging to a group or pathway, for example) across comparisons\n\n"
+    print "\nRetrieves log2(fc) values for specific genes in all comparisons in a gene_exp.diff file. Can be used for quick retrieval of single gene information or to set up for a heatmap for expression of multiple genes (belonging to a group or pathway, for example) across comparisons\n\n";
     
     print "\nRequired:\n";
     print "perl specificGene.pl [options] <input_file.diff> --genes <name(s)_of_GOI or csv/txt file> \n";
@@ -69,7 +69,9 @@ print "\n";
 if (!$g){
     print "Enter gene name, gene names as a comma separated list, or a text file) to search for genes!" and die;
 }
-if (!$status){$status=0);
+if (!$status){
+    $status=0;
+}
 
 my @textTest=split(/\./,$g);
 my $ext=$textTest[scalar @textTest -1];

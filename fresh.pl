@@ -58,7 +58,8 @@ s{^\s+|\s+$}{}g foreach @common;
 #Open tracking file to pull comparisons
 # [4]-GeneSymbol
 open (TR,'<', $tracker) or print "Cannot open input tracking file" and die;
-print "This is the tracking file: $ARGV[0]";
+print "This is the tracking file: $ARGV[1]";
+print "This is the gene id list: $ARGV[0]";
 my $line=<TR>;
 my @header=split("\t",$line);
 
@@ -112,11 +113,6 @@ my $l=0;
 my @zero=();
 print "\n";
 
-open OUT,'>',"wholearray.txt";
-foreach(keys %whole){
-    print OUT "$_ \n";
-}
-
 print "\nPulling out genes XLOC ids and calculating fold change\n";
 foreach my $g(@scommon){
     my $help=$whole{$g};
@@ -151,23 +147,27 @@ print "This is the size of the whole array: ".keys(%whole)."\n";
 
 #Only make the zerofc out text file if there are zero fc genes (if doing all DE genes as oppose to common DE genes)
 if (scalar @zero !=0){
-    open OUT,'>',"zerofc.txt";
+    open (OUT,'>',"zerofc.txt") or die;
     print OUT "Genes to check (had value of 0 and log2(fc) could not be calculated):\n";
     foreach my $z(@zero){
         print OUT $z,"\n";
     }
+    close OUT;
 }
-close OUT;
+
 print "\n Writing to the output file\n";
-open CSV,'>',"$t.csv";
-print CSV "comp1,comp2,gene_name,gene_id\n";
+
+my $outfile="out.tsv";
+open (CSV,'>',$outfile) or (print "Cannot write to $outfile. Check that directory exists.\n" and die);
+#print CSV "comp1,comp2,gene_name,gene_id\n";
 print "This is the size of the selected array: ".keys(%some)."\n";
 foreach (sort keys %some) {
     my @va=@{$some{$_}};
-    foreach (@va){
-        print CSV "$_,";
-    }
-    print CSV "$_ \n";
+    print CSV "$va[1]\t$va[0]\n";
+    #foreach my $v(@va){
+        #print CSV "$v\t";
+        #}
+    #print "\n";
 }
 
 
