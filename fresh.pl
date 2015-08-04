@@ -18,12 +18,13 @@ use strict;
 use warnings;
 use Getopt::Long;
 
-our ($one,$two,$h,$entrez);
+our ($one,$two,$h,$entrez,$color);
 GetOptions(
 'L1:s' => \$one,
 'L2:s' => \$two,
 'h'=>\$h,
 'entrez:s'=>\$entrez,
+'color'=>\$color,
 );
 
 sub printer{
@@ -33,6 +34,7 @@ sub printer{
 	print "--L1 \t enter entry codes for first comparison sample1,sample2\n";
 	print "--L2 \t OPTIONAL enter entry codes for second comparison sample1,sample2\n";
     print "--entrez \t enter file name of entrez conversion gene name to ids";
+    print "-color\t Instead of returning log2(fc)s, give color red for - values and green for + values\n";
     print "=========================================================================\n";
 }
 
@@ -187,8 +189,32 @@ open (CSV,'>',$outfile) or (print "Cannot write to $outfile. Check that director
 open (OUT,'>',"noEntrezGenes.txt");
 #print CSV "comp1,comp2,gene_name,gene_id\n";
 print "This is the size of the selected array: ".keys(%some)."\n";
+if ($color and $entrez){
+    open YELLOW,'>',"yellow.tsv";
+    open RED,'>',"red.tsv";
+    foreach (sort keys %some) {
+        my @va=@{$some{$_}};
+        my $entr=$va[1];
+        if ((defined $dict{$va[1]}) and ($dict{$va[1]} ne "")){
+            $entr=$dict{$va[1]};
+            if ($va[0]>0){
+                print YELLOW "$entr\tyellow\n";
+            }
+            else{
+                print RED "$entr\tred\n";
+            }
+        }
+        else{
+            print OUT "$entr\t$va[0]\n";
+        }
+        
+    }
+    close YELLOW;
+    close RED;
+}
 
-if ($entrez){
+    
+elsif ($entrez){
     foreach (sort keys %some) {
         my @va=@{$some{$_}};
         my $entr=$va[1];
