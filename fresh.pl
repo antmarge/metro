@@ -2,24 +2,28 @@
 
 #Margaret Antonio
 
-#Script to create a .csv file of fold change comparisons that can be inputed into R for rank comparison statistical analysis
+#Script to create a .csv file of fold change comparisons that can be inputed into R for rank correlation tests
 
-#perl prep.pl --list <genelistFile.txt> --L1 first,second --L2 first,second <tracking file>
+#perl prep.pl <genelistFile.txt> <tracking file> --L1 first,second --L2 first,second
 
 #perl fresh.pl --L1 21,33 --L2 25,33 -h --list ../../testGetMatrix/9_rankGenes/common_5322-5324.txt ../../testGetMatrix/genes.fpkm_tracking 
 
 #list of common genes should include only ones with
-#--output-file is the equivalent of -o
+#--output-file is the equivalent of -o]'
+
+
+#Add Entrez ID option so ENTREZ ID is outputted
 
 use strict;
 use warnings;
 use Getopt::Long;
 
-our ($one,$two,$h);
+our ($one,$two,$h,$entrez);
 GetOptions(
 'L1:s' => \$one,
 'L2:s' => \$two,
 'h'=>\$h,
+'entrez:s'=>\$entrez,
 );
 
 sub printer{
@@ -27,8 +31,8 @@ sub printer{
     print "\nRequired:\n";
     print "Without a flag, enter the genes.fpkm_tracking file from cuffdiff output\n";
 	print "--L1 \t enter entry codes for first comparison sample1,sample2\n";
-	print "--L2 \t enter entry codes for second comparison sample1,sample2\n";
-    #print "--list \t name of file containing common genes between the two samples. Should be line delimited with XLOC ids\n\n";
+	print "--L2 \t OPTIONAL enter entry codes for second comparison sample1,sample2\n";
+    print "--entrez \t enter file name of entrez conversion gene name to ids";
     print "=========================================================================\n";
 }
 
@@ -113,6 +117,27 @@ my $l=0;
 my @zero=();
 print "\n";
 
+#If entrez id option was flagged then open file of gene names and corresponding entrez ids and write into a hash dictionary for conversion from geneName to entrez id
+    my %dict;
+if ($entrez){
+    open ENT,'<',$entrez;
+    my $head=<ENT>; #store header
+    while (my $line=<ENT>){
+        my @entry=split(",",$line);
+        #assign geneName---entrezID as hash entry
+        my $entrezID=$entry[1];
+        chomp $entrezID;
+        $dict{$entry[0]}=$entrezID;
+    }
+    foreach (sort keys %dict){
+        print $_,": ",$dict{$_},"\n";
+    }
+    close ENT;
+}
+else{
+    print "unable to open entrez dictionary file, $entrez. Please upload the correct file or do not specify the entrez option.\n";
+    die;
+}
 print "\nPulling out genes XLOC ids and calculating fold change\n";
 foreach my $g(@scommon){
     my $help=$whole{$g};
@@ -157,17 +182,35 @@ if (scalar @zero !=0){
 
 print "\n Writing to the output file\n";
 
-my $outfile="out.tsv";
+my $outfile="outfile.tsv";
 open (CSV,'>',$outfile) or (print "Cannot write to $outfile. Check that directory exists.\n" and die);
+open (OUT,'>',"noEntrezGenes.txt");
 #print CSV "comp1,comp2,gene_name,gene_id\n";
 print "This is the size of the selected array: ".keys(%some)."\n";
-foreach (sort keys %some) {
-    my @va=@{$some{$_}};
-    print CSV "$va[1]\t$va[0]\n";
+
+if ($entrez){
+    foreach (sort keys %some) {
+        my @va=@{$some{$_}};
+        my $entr=$va[1];
+        if ((defined $dict{$va[1]}) and ($dict{$va[1]} ne "")){
+            $entr=$dict{$va[1]};
+            print CSV "$entr\t$va[0]\n";
+        }
+        else{
+            print OUT "$entr\t$va[0]\n";
+        }
+
+    }
+}
+else{
+    foreach (sort keys %some) {
+        my @va=@{$some{$_}};
+        print CSV "$va[1]\t$va[0]\n";
     #foreach my $v(@va){
         #print CSV "$v\t";
         #}
     #print "\n";
+    }
 }
 
 
