@@ -1,13 +1,15 @@
 #!usr/bin/perl
 
 #Margaret Antonio
-#Parser for .diff files to just get differentially expressed genes with significant fold change
-
-#.diff file description: 0-test_id 1-gene_id 2-gene 3-locus 4-sample_1 5-sample_2 6-status 7-value_1 8-value_2 9-log2(fold_change) 10-p_value 11_q-value 12-significant
-
-#0-test_id	1-gene_id	2-gene	3-locus	4-sample_1	5-sample_2	status	7-value_1	8-value_2	log2(fold_change)	test_stat	p_value	q_value	significant
+#This script parses a gene_exp.diff output file from Cuffdiff.
+#Output: only genes that are differentially expressed as determined by the fold change cutoff (default=fold change of 2). Will ouput three lists per comparison: A=DE genes, B=genes with 0 fpkm in the first sample but greater than 2 fpkm in the second sample, C=genes with 0 fpkm in second sample but greater than 2 fpkm in the first sample.
+#Output of gene identity is by default name and XLOC id. However, flags can specify output of only the name or only the id. When doing an analysis across two DIFFERENT cuffdiff runs (with two different gene_exp.diff files), outputting only the name is more helpful as the XLOC ids will be different in each run. However, if performing an analysis within a single cuffdiff run, then XLOC ids should be used since they are unique identifiers and certain genes that are duplicated throughout the genome will have the same gene name but different XLOC ids.
 
 
+#Heading for .diff file:
+#0-test_id | 1-gene_id | 2-gene | 3-locus | 4-sample_1 | 5-sample_2 | 6-status | 7-value_1 | 8-value_2 | 9-log2(fold_change) | 10-test_stat | 11-p_value | 12-q_value | 13-significant
+
+# Ideas for ongoing improvements: 1) Fn to test for .diff extension of input file 2) output excel file for gene statistics
 use strict;
 use warnings;
 use Getopt::Long;
@@ -19,7 +21,7 @@ sub print_usage(){
     print "In the command line (without a flag), input the name of the .diff file to be parsed\n";
     
     print "\nOptional:\n";
-    print "--fc \t Lowest acceptable fold_change value Default: 2\n";
+    print "--fc \t Lowest acceptable fold_change value (default: 2)\n";
     print "--ext \t specify output gene file extension (txt, sbt, etc). Default ext= txt for file.txt\n";
     print "--name \t flag for outputing only gene name\n";
     print "--id \t flag for outputing only gene id (XLOC)\n";
