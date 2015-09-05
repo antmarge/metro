@@ -14,3 +14,12 @@ FastQC 0.11.3 <br />
 Trimmomatic 0.33<br /> 
 TopHat 2.0.12<br /> 
 Cufflinks: Cuffmerge, Cuffquant, Cuffdiff 2.2.1 <br /> 
+
+
+
+#<center> Differential gene and pathway Analysis</center>
+
+#Workflow for gene and pathway analysis
+
+<img src="https://mlantonio.files.wordpress.com/2015/07/pathway_de_gene_analysis.jpg">
+
