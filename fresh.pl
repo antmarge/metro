@@ -4,7 +4,7 @@
 
 #Script to create a .csv file of fold change comparisons that can be inputed into R for rank correlation tests
 
-#perl prep.pl <genelistFile.txt> <tracking file> --L1 first,second --L2 first,second
+
 
 #perl fresh.pl --L1 21,33 --L2 25,33 -h --list ../../testGetMatrix/9_rankGenes/common_5322-5324.txt ../../testGetMatrix/genes.fpkm_tracking 
 
@@ -190,28 +190,41 @@ open (OUT,'>',"noEntrezGenes.txt");
 #print CSV "comp1,comp2,gene_name,gene_id\n";
 print "This is the size of the selected array: ".keys(%some)."\n";
 if ($color and $entrez){
-    open YELLOW,'>',"yellow.tsv";
-    open RED,'>',"red.tsv";
+    open COLOR,'>',"color.tsv";
     foreach (sort keys %some) {
         my @va=@{$some{$_}};
         my $entr=$va[1];
+        my $log2fc=$va[0];
         if ((defined $dict{$va[1]}) and ($dict{$va[1]} ne "")){
             $entr=$dict{$va[1]};
-            if ($va[0]>0){
-                print YELLOW "$entr\tyellow\n";
+            if ($log2fc>=1){
+                if ($log2fc>=4){
+                    print COLOR "$entr\tblue\n";
+                }
+                else{
+                    print COLOR"$entr\tgreen\n";
+                }
             }
-            else{
-                print RED "$entr\tred\n";
+            elsif($log2fc<=-1){
+                if ($log2fc<=-4){
+                     print COLOR "$entr\tred\n";
+                }
+                else{
+                    print COLOR "$entr\tyellow\n";
+                }
             }
-        }
+            
+            }
         else{
             print OUT "$entr\t$va[0]\n";
         }
-        
     }
-    close YELLOW;
-    close RED;
+    close COLOR;
+    close OUT;
+  
+        
 }
+
 
     
 elsif ($entrez){

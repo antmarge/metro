@@ -29,7 +29,7 @@ sub print_usage(){
 
 #Assign inputs to variables
 
-our ($g, $out,$status,$h,$id,$name);
+our ($g, $out,$status,$h,$id,$name,);
 GetOptions(
 'g:s' => \$g,
 'out' => \$out,

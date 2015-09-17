@@ -24,7 +24,7 @@ with open(OUT_file, 'w') as outfile:
     with open(CSV_file, 'r') as csv:
         ## for each line in csv extract the csv domain
         for line in csv:
-            csv_gene = line.split(",")[1]
+            csv_gene = line.split(",")[0]
             if (csv_gene in keep_list):
                 outfile.write(line)
 

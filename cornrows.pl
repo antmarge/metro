@@ -1,7 +1,8 @@
 #!usr/bin/perl
 
 #Margaret Antonio
-#Gets pathways from .tsv file that WebGestalt ouptus. Can put pathway lists into VennY
+#Gets pathways from .tsv file that WebGestalt outputs. Also supports reactome ouput file for pathway name extraction.
+#Downstream: Can put pathway lists into VennY or create a matrix of pathway ranks using rankPaths.pl
 
 
 use strict;
@@ -51,7 +52,6 @@ if ($db eq "webgestalt"){
             next;
         }
         push (@pathways,$fields[1]);
-        #push (@pathway_ids,$fields[2]);
         
     }
     
@@ -64,14 +64,6 @@ if ($db eq "webgestalt"){
         print FH1 $path, "\n";
     }
     close FH1;
-    
-    #print "\nNow creating pathway id file\n";
-   # my $file=$out."_wb_pathways.txt";
-    #open (FH1,'>',$file);
-    #foreach my $id(@pathway_ids){
-     #   print FH2 $id, "\n";
-    #}
-    #close FH2;
     
     }
 
