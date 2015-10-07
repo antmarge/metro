@@ -8,6 +8,8 @@
 
 #perl fresh.pl --L1 21,33 --L2 25,33 -h --list ../../testGetMatrix/9_rankGenes/common_5322-5324.txt ../../testGetMatrix/genes.fpkm_tracking 
 
+#
+
 #list of common genes should include only ones with
 #--output-file is the equivalent of -o]'
 
@@ -34,7 +36,7 @@ sub printer{
 	print "--L1 \t enter entry codes for first comparison sample1,sample2\n";
 	print "--L2 \t OPTIONAL enter entry codes for second comparison sample1,sample2\n";
     print "--entrez \t enter file name of entrez conversion gene name to ids";
-    print "-color\t Instead of returning log2(fc)s, give color red for - values and green for + values\n";
+    print "--color\t Instead of returning log2(fc)s, give color red for - values and green for + values\n";
     print "=========================================================================\n";
 }
 
@@ -131,9 +133,9 @@ if ($entrez){
         chomp $entrezID;
         $dict{$entry[0]}=$entrezID;
     }
-    foreach (sort keys %dict){
-        print $_,": ",$dict{$_},"\n";
-    }
+    #foreach (sort keys %dict){
+        #print $_,": ",$dict{$_},"\n";
+    #}
     close ENT;
 }
 else{
@@ -153,7 +155,7 @@ foreach my $g(@scommon){
     }
     if ($two){
         my @L2=split(",",$two);  #@L2=(25,33)
-        if (($values[$L2[0]]!=0) and ($values[$L2[1]]!=0)){
+        if (($values[$L2[1]]!=0) and ($values[$L2[0]]!=0)){
             my $fc2=log2($values[$L2[1]]/$values[$L2[0]]);
             push (@core,$fc2);
         }
