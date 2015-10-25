@@ -138,10 +138,7 @@ if ($entrez){
     #}
     close ENT;
 }
-else{
-    print "unable to open entrez dictionary file, $entrez. Please upload the correct file or do not specify the entrez option.\n";
-    die;
-}
+
 print "\nPulling out genes XLOC ids and calculating fold change\n";
 foreach my $g(@scommon){
     my $help=$whole{$g};
@@ -149,16 +146,18 @@ foreach my $g(@scommon){
     my @values=@$help;
     my @core;
     my @L1=split(",",$one);
+    push (@core,$g);
     if (($values[$L1[0]]!=0) and ($values[$L1[1]]!=0)){
         my $fc1=log2($values[$L1[1]]/$values[$L1[0]]);
         push (@core,$fc1);
     }
     if ($two){
         my @L2=split(",",$two);  #@L2=(25,33)
-        if (($values[$L2[1]]!=0) and ($values[$L2[0]]!=0)){
+        if (($values[$L2[0]]!=0) and ($values[$L2[1]]!=0)){
             my $fc2=log2($values[$L2[1]]/$values[$L2[0]]);
             push (@core,$fc2);
         }
+        
     }
     if (scalar @core !=0){
         push (@core,$values[0]);
@@ -191,6 +190,7 @@ open (CSV,'>',$outfile) or (print "Cannot write to $outfile. Check that director
 open (OUT,'>',"noEntrezGenes.txt");
 #print CSV "comp1,comp2,gene_name,gene_id\n";
 print "This is the size of the selected array: ".keys(%some)."\n";
+
 if ($color and $entrez){
     open COLOR,'>',"color.tsv";
     foreach (sort keys %some) {
@@ -222,13 +222,10 @@ if ($color and $entrez){
         }
     }
     close COLOR;
-    close OUT;
-  
+    close OUT;  
         
 }
-
-
-    
+   
 elsif ($entrez){
     foreach (sort keys %some) {
         my @va=@{$some{$_}};
@@ -246,11 +243,7 @@ elsif ($entrez){
 else{
     foreach (sort keys %some) {
         my @va=@{$some{$_}};
-        print CSV "$va[1]\t$va[0]\n";
-    #foreach my $v(@va){
-        #print CSV "$v\t";
-        #}
-    #print "\n";
+        print CSV "$va[0]\t$va[1]\t$va[2]\n";
     }
 }
 
