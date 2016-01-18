@@ -10,11 +10,11 @@ The PAVE workflow consists of the TUXEDO Suite pipeline followed by custom-made 
 
 ### Tuxedo Pipeline Workflow
 
-<img src="https://pavetx.files.wordpress.com/2016/01/pathway_de_gene_analysis.jpg?w=1332">
+<img src="https://pavetx.files.wordpress.com/2016/01/tuxedopipeline.jpg?w=1050">
 
 
 ### Analysis Workflow
 
 
-<img src="https://pavetx.files.wordpress.com/2016/01/tuxedopipeline.jpg?w=1050">
+<img src="https://pavetx.files.wordpress.com/2016/01/pathway_de_gene_analysis.jpg?w=1332">
 
