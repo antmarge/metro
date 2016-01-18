@@ -1,6 +1,6 @@
 <h1>Transcriptome-Directed Pathway Analysis Pipeline</h1>
 
-## About PAVE
+### About PAVE
 
 PAVE is a transcriptomics-directed pipeline that enables analysis and visualization of differentially expressed genes and pathways.
 
@@ -8,7 +8,7 @@ Created by Margaret Antonio during the Charleston NSF REU for computational geno
 The PAVE workflow consists of the TUXEDO Suite pipeline followed by custom-made Perl scripts and biological pathway databases, Reactome and Kegg. The goal of PAVE is to take RNA-Seq data and extract biologically relevant results into a simple summary of differentially expressed genes and ranked differentially expressed pathways for the given samples.
 
 
-<h1>Tuxedo Pipeline Workflow </h1>
+<h3>Tuxedo Pipeline Workflow </h3>
 
 <img src="https://pavetx.files.wordpress.com/2016/01/pathway_de_gene_analysis.jpg?w=1332">
 
@@ -21,9 +21,8 @@ Cufflinks: Cuffmerge, Cuffquant, Cuffdiff 2.2.1 <br />
 
 
 
-#<center> Differential gene and pathway Analysis</center>
+### Analysis Workflow
 
-#Workflow for gene and pathway analysis
 
 <img src="https://pavetx.files.wordpress.com/2016/01/tuxedopipeline.jpg?w=1050">
 
