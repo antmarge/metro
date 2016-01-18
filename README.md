@@ -1,4 +1,3 @@
-<h1>Transcriptome-Directed Pathway Analysis Pipeline</h1>
 
 ### About PAVE
 
