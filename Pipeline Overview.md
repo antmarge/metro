@@ -10,7 +10,7 @@ The PAVE workflow consists of the TUXEDO Suite pipeline followed by custom-made 
 
 <h1>Tuxedo Pipeline Workflow </h1>
 
-<img src="https://pavetx.files.wordpress.com/2016/01/tuxedopipeline.jpg?w=700">
+<img src="https://pavetx.files.wordpress.com/2016/01/pathway_de_gene_analysis.jpg?w=1332">
 
 <h2>Versions of Pipeline Tools</h2>
 
@@ -25,5 +25,5 @@ Cufflinks: Cuffmerge, Cuffquant, Cuffdiff 2.2.1 <br />
 
 #Workflow for gene and pathway analysis
 
-<img src="https://pavetx.files.wordpress.com/2016/01/pathway_de_gene_analysis.jpg?w=700">
+<img src="https://pavetx.files.wordpress.com/2016/01/tuxedopipeline.jpg?w=1050">
 
