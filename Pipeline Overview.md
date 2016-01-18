@@ -6,7 +6,7 @@ This pipeline was originally constructed for RNA-Seq data analysis. The first pa
 
 <h1>Tuxedo Pipeline Workflow </h1>
 
-<img src="https://mlantonio.files.wordpress.com/2015/07/tuxedopipeline.jpg">
+<img src="https://pavetx.files.wordpress.com/2016/01/tuxedopipeline.jpg?w=700">
 
 <h2>Versions of Pipeline Tools</h2>
 
@@ -21,5 +21,5 @@ Cufflinks: Cuffmerge, Cuffquant, Cuffdiff 2.2.1 <br />
 
 #Workflow for gene and pathway analysis
 
-<img src="https://mlantonio.files.wordpress.com/2015/07/pathway_de_gene_analysis.jpg">
+<img src="https://pavetx.files.wordpress.com/2016/01/pathway_de_gene_analysis.jpg?w=700">
 
