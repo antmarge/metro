@@ -4,6 +4,7 @@
 PAVE is a transcriptomics-directed pipeline that enables analysis and visualization of differentially expressed genes and pathways.
 
 Created by Margaret Antonio during the Charleston NSF REU for computational genomics.
+
 The PAVE workflow consists of the TUXEDO Suite pipeline followed by custom-made Perl scripts and biological pathway databases, Reactome and Kegg. The goal of PAVE is to take RNA-Seq data and extract biologically relevant results into a simple summary of differentially expressed genes and ranked differentially expressed pathways for the given samples.
 
 
