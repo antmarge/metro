@@ -47,9 +47,9 @@ Make text file transcriptGTFs_A.txt that contains transcripts.gtf files from ALL
 cuffmerge -p 20 -o mergeA -g ../../../reference_genomes/Homo_sapiens/UCSC/hg19/Sequence/Bowtie2Index/genome transcriptGTFs_A.txt
 ```
 #### CUFFQUANT: quantify transcripts
-
+```bash
 cuffquant -p 10 -o quant_parental_A mergeA/merged.gtf tophat_parental/accepted_hits.bam
-
+```
 #### CUFFDIFF: Calculate fold change for differential expression
 
 NOTE: using -p -o -L -b flags Really -b is useless
