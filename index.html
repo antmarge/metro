@@ -24,18 +24,73 @@
 
 <p>PAVE is a transcriptomics-directed pipeline that enables analysis and visualization of differentially expressed genes and pathways.</p>
 
-<p>Created by Margaret Antonio during the Charleston NSF REU for computational genomics.
-The PAVE workflow consists of the TUXEDO Suite pipeline followed by custom-made Perl scripts and biological pathway databases, Reactome and Kegg. The goal of PAVE is to take RNA-Seq data and extract biologically relevant results into a simple summary of differentially expressed genes and ranked differentially expressed pathways for the given samples.</p>
+<p>Created by Margaret Antonio during the Charleston NSF REU for computational genomics.</p>
+
+<p>The PAVE workflow consists of the TUXEDO Suite pipeline followed by custom-made Perl scripts and biological pathway databases, Reactome and Kegg. The goal of PAVE is to take RNA-Seq data and extract biologically relevant results into a simple summary of differentially expressed genes and ranked differentially expressed pathways for the given samples.</p>
 
 <h3>
 <a id="tuxedo-pipeline-workflow" class="anchor" href="#tuxedo-pipeline-workflow" aria-hidden="true"><span class="octicon octicon-link"></span></a>Tuxedo Pipeline Workflow</h3>
 
-<p><img src="https://pavetx.files.wordpress.com/2016/01/tuxedopipeline.jpg" alt="Image of Tuxedo Pipeline workflow"></p>
+<p><img src="https://pavetx.files.wordpress.com/2016/01/tuxedopipeline.jpg?w=1050"></p>
+
+<h2>
+<a id="versions-of-pipeline-tools" class="anchor" href="#versions-of-pipeline-tools" aria-hidden="true"><span class="octicon octicon-link"></span></a>Versions of Pipeline Tools</h2>
+
+<p>FastQC 0.11.3 <br> 
+Trimmomatic 0.33<br> 
+TopHat 2.0.12<br> 
+Cufflinks: Cuffmerge, Cuffquant, Cuffdiff 2.2.1 <br> </p>
+
+<h5>
+<a id="trimmomatic-trim-adapter-sequences-from-reads" class="anchor" href="#trimmomatic-trim-adapter-sequences-from-reads" aria-hidden="true"><span class="octicon octicon-link"></span></a>Trimmomatic: trim adapter sequences from reads</h5>
+
+<p>Documentation and command line options on Usadel Lab wesbiste <a href="http://www.usadellab.org/cms/?page=trimmomatic">here</a></p>
+
+<div class="highlight highlight-source-shell"><pre><span class="pl-c">#Example of Trimmomatic Command. All others look just like this except with different labels of course</span>
+java -jar ../../bin/Trimmomatic-0.33/trimmomatic-0.33.jar PE shFli1_5322_passage_16_R1.fastq.gz shFli1_5322_passage_16_R2.fastq.gz  shFli1_5322_passage_16_R1_trimmo_paired.fq.gz shFli1_5322_passage_16_R1_trimmo_unpaired.fq.gz shFli1_5322_passage_16_R2_trimmo_paired.fq.gz shFli1_5322_passage_16_R2_trimmo_unpaired.fq.gz ILLUMINACLIP:../../TruSeq2Burnett.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:40 <span class="pl-k">&gt;</span>goodles_trimmoLOF53225324.log </pre></div>
+
+<h5>
+<a id="tophat-align-reads-to-hg19-genome" class="anchor" href="#tophat-align-reads-to-hg19-genome" aria-hidden="true"><span class="octicon octicon-link"></span></a>Tophat: align reads to hg19 genome</h5>
+
+<p>Documentation and command line options: see <a href="https://ccb.jhu.edu/software/tophat/manual.shtml">manual</a></p>
+
+<div class="highlight highlight-source-shell"><pre>tophat2 -p 20 -o tophat_Fli_A ../../../reference_genomes/Homo_sapiens/UCSC/hg19/Sequence/Bowtie2Index/genome GOF/Ad_Fli1_R1_trimmo_paired  GOF/Ad_Fli1_R2_trimmo_paired</pre></div>
+
+<h5>
+<a id="cufflinks" class="anchor" href="#cufflinks" aria-hidden="true"><span class="octicon octicon-link"></span></a>CUFFLINKS</h5>
+
+<p>See documentation and command line options on <a href="http://cole-trapnell-lab.github.io/cufflinks/manual/">Cole-Trapnell Lab webiste</a></p>
+
+<div class="highlight highlight-source-shell"><pre>
+<span class="pl-c">#Use -g option to give annotated genome (originates from UCSC) genes.gtf</span>
+
+cufflinks -p 10 -o link_Fli_A -g sequence/genes.gtf tophat_Fli_A/accepted_hits.bam</pre></div>
+
+<h5>
+<a id="cuffmerge" class="anchor" href="#cuffmerge" aria-hidden="true"><span class="octicon octicon-link"></span></a>CUFFMERGE</h5>
+
+<p>See documentation and command line options on <a href="http://cole-trapnell-lab.github.io/cufflinks/manual/">Cole-Trapnell Lab webiste</a></p>
+
+<p>Make text file transcriptGTFs_A.txt that contains transcripts.gtf files from ALL samples</p>
+
+<div class="highlight highlight-source-shell"><pre>cuffmerge -p 20 -o mergeA -g ../../../reference_genomes/Homo_sapiens/UCSC/hg19/Sequence/Bowtie2Index/genome transcriptGTFs_A.txt</pre></div>
+
+<h5>
+<a id="cuffquant-quantify-transcripts" class="anchor" href="#cuffquant-quantify-transcripts" aria-hidden="true"><span class="octicon octicon-link"></span></a>CUFFQUANT: quantify transcripts</h5>
+
+<div class="highlight highlight-source-shell"><pre>cuffquant -p 10 -o quant_parental_A mergeA/merged.gtf tophat_parental/accepted_hits.bam</pre></div>
+
+<h5>
+<a id="cuffdiff-calculate-fold-change-for-differential-expression" class="anchor" href="#cuffdiff-calculate-fold-change-for-differential-expression" aria-hidden="true"><span class="octicon octicon-link"></span></a>CUFFDIFF: Calculate fold change for differential expression</h5>
+
+<p>NOTE: using -p -o -L -b flags Really -b is useless</p>
+
+<div class="highlight highlight-source-shell"><pre>cuffdiff -p 20 -o diff_A -L Ad_GFP,Ad_Fli,Ad_PDEF,sh_5322,sh_5324,parental,sh_control -b sequence/genome.fa mergeA/merged.gtf quant_GFP_A/abundances.cxb quant_Fli_A/abundances.cxb quant_PDEF_A/abundances.cxb quant_5322_A/abundances.cxb quant_5324_A/abundances.cxb quant_parental_A/abundances.cxb quant_control_A/abundances.cxb</pre></div>
 
 <h3>
 <a id="analysis-workflow" class="anchor" href="#analysis-workflow" aria-hidden="true"><span class="octicon octicon-link"></span></a>Analysis Workflow</h3>
 
-<p><img src="https://pavetx.files.wordpress.com/2016/01/pathway_de_gene_analysis.jpg" alt="Image of Analysis Workflow"></p>
+<p><img src="https://pavetx.files.wordpress.com/2016/01/pathway_de_gene_analysis.jpg?w=1332"></p>
 
       <footer class="site-footer">
         <span class="site-footer-owner"><a href="https://github.com/mmlantonio/PAVE">PAVE-Tx</a> is maintained by <a href="https://github.com/mmlantonio">mmlantonio</a>.</span>
