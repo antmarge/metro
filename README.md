@@ -20,18 +20,18 @@ Trimmomatic 0.33<br />
 TopHat 2.0.12<br /> 
 Cufflinks: Cuffmerge, Cuffquant, Cuffdiff 2.2.1 <br /> 
 
-#### Trimmomatic: trim adapter sequences from reads
+##### Trimmomatic: trim adapter sequences from reads
 Documentation and command line options on Usadel Lab wesbiste [here](http://www.usadellab.org/cms/?page=trimmomatic)
 ```bash
 #Example of Trimmomatic Command. All others look just like this except with different labels of course
 java -jar ../../bin/Trimmomatic-0.33/trimmomatic-0.33.jar PE shFli1_5322_passage_16_R1.fastq.gz shFli1_5322_passage_16_R2.fastq.gz  shFli1_5322_passage_16_R1_trimmo_paired.fq.gz shFli1_5322_passage_16_R1_trimmo_unpaired.fq.gz shFli1_5322_passage_16_R2_trimmo_paired.fq.gz shFli1_5322_passage_16_R2_trimmo_unpaired.fq.gz ILLUMINACLIP:../../TruSeq2Burnett.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:40 >goodles_trimmoLOF53225324.log 
 ```
-#### Tophat: align reads to hg19 genome
+##### Tophat: align reads to hg19 genome
 Documentation and command line options: see [manual](https://ccb.jhu.edu/software/tophat/manual.shtml)
 ```bash
 tophat2 -p 20 -o tophat_Fli_A ../../../reference_genomes/Homo_sapiens/UCSC/hg19/Sequence/Bowtie2Index/genome GOF/Ad_Fli1_R1_trimmo_paired  GOF/Ad_Fli1_R2_trimmo_paired
 ```
-#### CUFFLINKS
+##### CUFFLINKS
 See documentation and command line options on [Cole-Trapnell Lab webiste](http://cole-trapnell-lab.github.io/cufflinks/manual/)
 ```bash
 
@@ -39,18 +39,18 @@ See documentation and command line options on [Cole-Trapnell Lab webiste](http:/
 
 cufflinks -p 10 -o link_Fli_A -g sequence/genes.gtf tophat_Fli_A/accepted_hits.bam
 ```
-#### CUFFMERGE
+##### CUFFMERGE
 See documentation and command line options on [Cole-Trapnell Lab webiste](http://cole-trapnell-lab.github.io/cufflinks/manual/)
 
 Make text file transcriptGTFs_A.txt that contains transcripts.gtf files from ALL samples
 ```bash
 cuffmerge -p 20 -o mergeA -g ../../../reference_genomes/Homo_sapiens/UCSC/hg19/Sequence/Bowtie2Index/genome transcriptGTFs_A.txt
 ```
-#### CUFFQUANT: quantify transcripts
+##### CUFFQUANT: quantify transcripts
 ```bash
 cuffquant -p 10 -o quant_parental_A mergeA/merged.gtf tophat_parental/accepted_hits.bam
 ```
-#### CUFFDIFF: Calculate fold change for differential expression
+##### CUFFDIFF: Calculate fold change for differential expression
 
 NOTE: using -p -o -L -b flags Really -b is useless
 ```bash
