@@ -31,12 +31,13 @@ my $countOK=0;
 
 #Assign inputs to variables
 
-our ($fc, $ext,$name,$id);
+our ($fc, $ext,$name,$id,$symd<-d[!(d$A=="B" & d$E==0),]d<-d[!(d$A=="B" & d$E==0),]);
 GetOptions(
 'fc:i' => \$fc,
 'ext' => \$ext,
 'name'=>\$name,
 'id'=>\$id,
+'sym'=>\$sym,
 );
 
 sub get_time() {
